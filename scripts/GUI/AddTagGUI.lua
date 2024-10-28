@@ -67,6 +67,9 @@ end
 
 AddTagGUI.is_open = function(player)
   assert(player ~= nil)
+  assert(storage.GUI ~= nil)
+  assert(storage.GUI.AddTag ~= nil)
+  assert(storage.GUI.AddTag.players ~= nil)
 
   return storage.GUI.AddTag.players[player.index].elements ~= nil
 end
