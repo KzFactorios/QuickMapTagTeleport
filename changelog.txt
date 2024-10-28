@@ -1,0 +1,12 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.10
+Date: 2024-10-27
+
+  Changes:
+    - make work with 2.0
+    - add in teleport functionality
+    - redo some styling
+
+  Todo:
+    - coming up
+

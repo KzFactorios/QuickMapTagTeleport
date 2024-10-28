@@ -1,0 +1,14 @@
+{
+    "name": "QuickMapTagTeleport",
+    "version": "0.1.0",
+    "title": "Quick Map Tag Teleport",
+    "author": "kurtzilla",
+    "contact": "",
+    "homepage": "",
+    "factorio_version": "2.0",
+    "dependencies": [
+      "base >= 2.0.11",
+      "flib >= 0.15.0"
+    ],
+    "description": "Open a dialog by right-clicking on the map view. You may either create a tag or teleport to that location. Mostly based upon Quick Map Tag by templar4522 https://mods.factorio.com/mod/QuickMapTag with an assist by Tag To Teleport by darkfrei https://mods.factorio.com/mod/TagToTeleport"
+}
