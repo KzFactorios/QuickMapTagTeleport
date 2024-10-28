@@ -23,14 +23,18 @@ AddTagSettings.NEW_TAG_ICON_ALLOWED_VALUES = {
   "signal-white",
   "signal-yellow"
 }
+
 AddTagSettings.USE_ADD_TAG_GUI_DEFAULT = true
 
 AddTagSettings.getPlayerSettings = function(player)
   local settings = {
     snap_scale = player.mod_settings[PREFIX .. "snap-scale"].value,
     new_tag_text = player.mod_settings[PREFIX .. "new-tag-text"].value,
-    use_add_tag_gui = player.mod_settings[PREFIX .. "use-add-tag-gui"].value
+    use_add_tag_gui = AddTagSettings.USE_ADD_TAG_GUI_DEFAULT
+    -- not necessary for current implementation - we are not allowing auto-tags without a dialog interface
+    -- use_add_tag_gui = player.mod_settings[PREFIX .. "use-add-tag-gui"].value
   }
+
   local new_tag_icon = player.mod_settings[PREFIX .. "new-tag-icon"].value
   if (new_tag_icon ~= "") then
     settings.new_tag_icon = {

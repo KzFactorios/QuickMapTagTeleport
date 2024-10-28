@@ -12,11 +12,21 @@ CustomInputEventHandler.on_add_tag = function(event)
     local position_can_be_tagged = MapTagUtils.position_can_be_tagged(position, player)
     local position_has_collisions = MapTagUtils.position_has_collisions(position, settings.snap_scale, player)
     if (position_can_be_tagged and not position_has_collisions) then
+      AddTagGUI.open(player, position)
+    
+      --[[ 
+      if you would like to bring back the option to automatically create the tag and
+      not offer a dialog box for creation, this is the code to do that. You will also 
+      need to fiddle with the settings to allow the option
+      It will also mess with the Teleport feature of the mod
+
       if (settings.use_add_tag_gui) then
         AddTagGUI.open(player, position)
       else
         MapTagUtils.create_new_tag(player, position, settings.new_tag_text, settings.new_tag_icon)
       end
+    ]]
+    
     end
   end
 end

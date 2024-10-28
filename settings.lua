@@ -25,11 +25,14 @@ data:extend({
     default_value = AddTagSettings.NEW_TAG_ICON_DEFAULT,
     allow_blank = true,
     allowed_values = AddTagSettings.NEW_TAG_ICON_ALLOWED_VALUES
-  },
+  }
+  
+  --[[,
   {
-    name = PREFIX .. "use-add-tag-gui",
+    name = PREFIX .. "use-add-tag-gui",     
     type = "bool-setting",
     setting_type = "runtime-per-user",
     default_value = AddTagSettings.USE_ADD_TAG_GUI_DEFAULT
   }
+  ]]
 })

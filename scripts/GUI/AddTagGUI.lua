@@ -80,8 +80,8 @@ AddTagGUI.open = function(player, position)
 
   local settings = AddTagSettings.getPlayerSettings(player)
   local posTxt = string.format("x: %d, y: %d", math.floor(position.x), math.floor(position.y))
-
   local elements = gui.build(player.gui.screen, {add_tag_frame_template(settings.new_tag_text, settings.new_tag_icon, posTxt)})
+
   elements.root_frame.force_auto_center()
   elements.fields.text.focus()
   elements.buttons.draggable_space.drag_target = elements.root_frame
@@ -180,6 +180,7 @@ AddTagGUI.handlers = {
           local player = game.get_player(event.player_index)
           local pos = AddTagGUI.get_position(player)
           if(pos and player and player.teleport(pos, player.surface)) then
+            game.print(string.format("%s teleported to x: %d, y: %d", player.name, pos.x, pos.y))
             AddTagGUI.close(player)
           end          
         end
