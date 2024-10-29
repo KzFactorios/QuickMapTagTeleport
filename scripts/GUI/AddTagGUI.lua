@@ -52,8 +52,8 @@ AddTagGUI.on_init = function()
   storage.GUI.AddTag = {
     players = {}
   }
-  for i, player in pairs(game.players) do
-    storage.GUI.AddTag.players[i] = {}
+  for _, player in pairs(game.players) do
+    storage.GUI.AddTag.players[player.index] ={}
   end
 end
 
@@ -65,71 +65,73 @@ AddTagGUI.on_player_removed = function(event)
   storage.GUI.AddTag.players[event.player_index] = nil
 end
 
-AddTagGUI.is_open = function(player)
-  assert(player ~= nil)
-  assert(storage.GUI ~= nil)
-  assert(storage.GUI.AddTag ~= nil)
-  assert(storage.GUI.AddTag.players ~= nil)
-
-  return storage.GUI.AddTag.players[player.index].elements ~= nil
+AddTagGUI.is_open = function(player)   
+  if player then
+      return storage.GUI.AddTag.players[player.index].elements ~= nil
+  end
 end
 
 AddTagGUI.open = function(player, position)
-  assert(player ~= nil)
-  assert(position ~= nil)
+  if player and position then
 
-  local settings = AddTagSettings.getPlayerSettings(player)
-  local posTxt = string.format("x: %d, y: %d", math.floor(position.x), math.floor(position.y))
-  local elements = gui.build(player.gui.screen, {add_tag_frame_template(settings.new_tag_text, settings.new_tag_icon, posTxt)})
+    local settings = AddTagSettings.getPlayerSettings(player)
+    local posTxt = string.format("x: %d, y: %d", math.floor(position.x), math.floor(position.y))
+    local elements = gui.build(player.gui.screen, {add_tag_frame_template(settings.new_tag_text, settings.new_tag_icon, posTxt)})
 
-  elements.root_frame.force_auto_center()
-  elements.fields.text.focus()
-  elements.buttons.draggable_space.drag_target = elements.root_frame
+    elements.root_frame.force_auto_center()
+    elements.fields.text.focus()
+    elements.buttons.draggable_space.drag_target = elements.root_frame
 
-  storage.GUI.AddTag.players[player.index].elements = elements
-  storage.GUI.AddTag.players[player.index].position = position
+    -- Not sure if this will fix the problem aka are we building the player correctly?
+    if not storage.GUI.AddTag.players[player.index] then
+      storage.GUI.AddTag.players[player.index] = player
+    end
 
-  player.opened = elements.root_frame
+    storage.GUI.AddTag.players[player.index].elements = elements
+    storage.GUI.AddTag.players[player.index].position = position
+    player.opened = elements.root_frame    
+    
+  end
 end
 
 AddTagGUI.close = function(player)
-  assert(player ~= nil)
-
-  if (not AddTagGUI.is_open(player)) then
-    return
+  if player then
+    if not AddTagGUI.is_open(player) then
+      return
+    end    
+    player.opened = nil
   end
-
-  player.opened = nil
 end
 
-AddTagGUI.get_position = function(player)
-  assert(player ~= nil)
+AddTagGUI.get_position = function(player)  
+  if player then
+    if (not AddTagGUI.is_open(player)) then
+      return nil
+    end
 
-  if (not AddTagGUI.is_open(player)) then
-    return nil
+    return storage.GUI.AddTag.players[player.index].position
   end
-
-  return storage.GUI.AddTag.players[player.index].position
 end
 
 AddTagGUI.get_text = function(player)
-  assert(player ~= nil)
-
-  if (not AddTagGUI.is_open(player)) then
-    return nil
+  if(player) then
+    if (not AddTagGUI.is_open(player)) then
+      return nil
+    end
+    return storage.GUI.AddTag.players[player.index].elements.fields.text.text
   end
-
-  return storage.GUI.AddTag.players[player.index].elements.fields.text.text
 end
 
 AddTagGUI.get_icon = function(player)
-  assert(player ~= nil)
-
-  if (not AddTagGUI.is_open(player)) then
-    return nil
+  if player then
+    if (not AddTagGUI.is_open(player)) then
+      return nil
+    end
+    if storage.GUI.AddTag.players[player.index].elemets then
+      return storage.GUI.AddTag.players[player.index].elemets.fields.icon.elem_value
+    end
   end
-
-  return storage.GUI.AddTag.players[player.index].elements.fields.icon.elem_value
+  return nil
 end
 
 local on_fields_values_changed = function(event)

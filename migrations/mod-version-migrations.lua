@@ -1,7 +1,6 @@
 -- for migrations that should run on script.on_configuration_changed
 
 local gui = require("lib/gui")
-
 local AddTagGUI = require("scripts/GUI/AddTagGUI")
 
 -- MUST be ordered from older to newer

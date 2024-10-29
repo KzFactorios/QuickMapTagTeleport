@@ -6,7 +6,12 @@ Date: 2024-10-27
     - make work with 2.0
     - add in teleport functionality
     - redo some styling
+    - replaced assert statements with if then else
 
   Todo:
-    - coming up
+    - determine if _0.1.0.lua file is necessary
+    - add in description page for deploy
+    - get help organizing files for deploy
+    - locale concerns
+    - update styling of gui
 

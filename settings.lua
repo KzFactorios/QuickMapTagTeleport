@@ -27,7 +27,7 @@ data:extend({
     allowed_values = AddTagSettings.NEW_TAG_ICON_ALLOWED_VALUES
   }
   
-  --[[,
+  --[[  This setting was removed for the Teleport functionality,
   {
     name = PREFIX .. "use-add-tag-gui",     
     type = "bool-setting",
