@@ -1,13 +1,13 @@
 -- for migrations that should run on script.on_configuration_changed
 
 local gui = require("lib/gui")
-local AddTagGUI = require("scripts/GUI/AddTagGUI")
+local add_tag_GUI = require("scripts/gui/add_tag_GUI")
 
 -- MUST be ordered from older to newer
 return {
   ["0.1.0"] = function()
     gui.init()
     gui.build_lookup_tables()
-    AddTagGUI.on_init()
+    add_tag_GUI.on_init()
   end
 }

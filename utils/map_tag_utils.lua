@@ -1,11 +1,11 @@
-local PREFIX = require("Constants").PREFIX
+local PREFIX = require("settings/constants").PREFIX
 local math = require("__flib__.math")
 
-local MapTagUtils = {}
+local map_tag_utils = {}
 
-MapTagUtils.create_new_tag = function(player, position, text, icon)
+map_tag_utils.create_new_tag = function(player, position, text, icon)
   if (icon == nil and text == "") then
-    player.print({PREFIX .. "empty-tag-error"})
+    player.print({ PREFIX .. "empty-tag-error" })
     return
   end
   local tag = {
@@ -19,14 +19,14 @@ MapTagUtils.create_new_tag = function(player, position, text, icon)
   return player.force.add_chart_tag(player.surface, tag)
 end
 
-MapTagUtils.snap_position = function(position, snap_scale)
+map_tag_utils.snap_position = function(position, snap_scale)
   return {
-    x = math.round(position.x/snap_scale) * snap_scale,
-    y = math.round(position.y/snap_scale) * snap_scale
+    x = math.round(position.x / snap_scale) * snap_scale,
+    y = math.round(position.y / snap_scale) * snap_scale
   }
 end
 
-MapTagUtils.position_has_collisions = function(position, snap_scale, player)
+map_tag_utils.position_has_collisions = function(position, snap_scale, player)
   local collision_area = {
     left_top = {
       x = position.x - snap_scale + 0.1,
@@ -41,7 +41,7 @@ MapTagUtils.position_has_collisions = function(position, snap_scale, player)
   return next(colliding_tags) ~= nil
 end
 
-MapTagUtils.position_can_be_tagged = function(position, player)
+map_tag_utils.position_can_be_tagged = function(position, player)
   local chunk_position = {
     x = math.floor(position.x / 32),
     y = math.floor(position.y / 32)
@@ -49,4 +49,4 @@ MapTagUtils.position_can_be_tagged = function(position, player)
   return player.force.is_chunk_charted(player.surface, chunk_position)
 end
 
-return MapTagUtils
+return map_tag_utils

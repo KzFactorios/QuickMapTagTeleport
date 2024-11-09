@@ -1,6 +1,6 @@
-local Constants = require("Constants")
+local Constants = require("settings/constants")
 
-data:extend{
+data:extend {
   {
     name = Constants.events.ADD_TAG_INPUT,
     type = "custom-input",

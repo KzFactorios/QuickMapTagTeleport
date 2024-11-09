@@ -1,3 +1,2 @@
 require("prototypes/styles")
-require("prototypes/custom-input-events")
-
+require("prototypes/custom_input_events")

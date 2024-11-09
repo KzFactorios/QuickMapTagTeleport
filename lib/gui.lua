@@ -22,21 +22,21 @@ local handler_groups = {}
 local function generate_template_lookup(t, template_string)
   for k, v in pairs(t) do
     if type(v) == "table" then
-      local new_string = template_string..k
+      local new_string = template_string .. k
       if v.type or v.template then
         template_lookup[new_string] = v
       else
-        generate_template_lookup(v, new_string..".")
+        generate_template_lookup(v, new_string .. ".")
       end
     end
   end
 end
 
 local function generate_handler_lookup(t, event_string, groups)
-  groups[#groups+1] = event_string
+  groups[#groups + 1] = event_string
   for k, v in pairs(t) do
     if k ~= "extend" then
-      local new_string = event_string.."."..k
+      local new_string = event_string .. "." .. k
       -- shortcut syntax: key is a defines.events or a custom-input name, value is just the handler
       if type(v) == "function" then
         v = {
@@ -50,12 +50,12 @@ local function generate_handler_lookup(t, event_string, groups)
         v.groups = table.deep_copy(groups)
         handler_lookup[new_string] = v
         -- assign handler to groups
-        for i=1,#groups do
+        for i = 1, #groups do
           local group = handler_groups[groups[i]]
           if group then
-            group[#group+1] = new_string
+            group[#group + 1] = new_string
           else
-            handler_groups[groups[i]] = {new_string}
+            handler_groups[groups[i]] = { new_string }
           end
         end
       else
@@ -81,7 +81,7 @@ local function generate_filter_lookup()
                 player_filters[filter] = filter
                 player_filters.__size = player_filters.__size + 1
               else
-                handler_filters[player_index] = {__size=1, [filter]=filter}
+                handler_filters[player_index] = { __size = 1, [filter] = filter }
               end
             end
           end
@@ -102,7 +102,7 @@ end
 -- This function can also be used to wipe all GUI filters for all players.
 function flib_gui.init()
   if not storage.__flib then
-    storage.__flib = {gui={}}
+    storage.__flib = { gui = {} }
   else
     storage.__flib.gui = {}
     for _, data in pairs(handler_lookup) do
@@ -149,7 +149,7 @@ function flib_gui.check_filter_validity()
           if event_filters.__size == 0 then
             filters_table[event_name] = nil
           end
-      end
+        end
       end
     end
   end
@@ -189,7 +189,7 @@ end
 -- @tparam table input
 -- @see gui.templates
 function flib_gui.add_templates(input)
-  templates = table.deep_merge{templates, input}
+  templates = table.deep_merge { templates, input }
   -- because the reference is lost...
   flib_gui.templates = templates
 end
@@ -201,7 +201,7 @@ end
 -- @tparam table input
 -- @see gui.handlers
 function flib_gui.add_handlers(input)
-  handlers = table.deep_merge{handlers, input}
+  handlers = table.deep_merge { handlers, input }
   -- because the reference is lost...
   flib_gui.handlers = handlers
 end
@@ -218,11 +218,11 @@ local function recursive_build(parent, structure, output, filters, player_index)
     -- recursively apply templates until there are none left
     while structure_template do
       if loaded_template_names[structure_template] then
-        error("Template loop detected in ["..structure_template.."]")
+        error("Template loop detected in [" .. structure_template .. "]")
       end
       loaded_template_names[structure_template] = true
       structure.template = nil
-      for k,v in pairs(template_lookup[structure_template]) do
+      for k, v in pairs(template_lookup[structure_template]) do
         structure[k] = structure[k] or v
       end
       structure_template = structure.template
@@ -237,7 +237,7 @@ local function recursive_build(parent, structure, output, filters, player_index)
       -- add children
       local children = structure.children
       if children then
-        for i=1,#children do
+        for i = 1, #children do
           output, filters = recursive_build(parent, children[i], output, filters, player_index)
         end
       end
@@ -266,14 +266,14 @@ local function recursive_build(parent, structure, output, filters, player_index)
     if structure.handlers then
       local elem_index = elem.index
       local group = handler_groups[structure.handlers]
-      if not group then error("Invalid GUI handler name ["..structure.handlers.."]") end
-      for i=1,#group do
+      if not group then error("Invalid GUI handler name [" .. structure.handlers .. "]") end
+      for i = 1, #group do
         local name = group[i]
         local saved_filters = filters[name]
         if not saved_filters then
-          filters[name] = {elem_index}
+          filters[name] = { elem_index }
         else
-          saved_filters[#saved_filters+1] = elem_index
+          saved_filters[#saved_filters + 1] = elem_index
         end
       end
     end
@@ -298,7 +298,7 @@ local function recursive_build(parent, structure, output, filters, player_index)
     -- add children
     local children = structure.children
     if children then
-      for i=1,#children do
+      for i = 1, #children do
         output, filters = recursive_build(elem, children[i], output, filters, player_index)
       end
     end
@@ -346,7 +346,7 @@ function flib_gui.build(parent, structures)
   local output = {}
   local filters = {}
   local player_index = parent.player_index or parent.player.index
-  for i=1,#structures do
+  for i = 1, #structures do
     output, filters = recursive_build(
       parent,
       structures[i],
@@ -411,11 +411,11 @@ end
 -- -- add a filter to a specific event
 -- gui.update_filters("main.titlebar.drag_handle.on_gui_click", player_index, {elems.drag_handle.index}, "add")
 function flib_gui.update_filters(name, player_index, filters, mode)
-  local handler_names = handler_groups[name] or {name}
+  local handler_names = handler_groups[name] or { name }
   for i = 1, #handler_names do
     local handler_name = handler_names[i]
     local handler_data = handler_lookup[handler_name]
-    if not handler_data then error("GUI handler ["..handler_name.."] does not exist!") end
+    if not handler_data then error("GUI handler [" .. handler_name .. "] does not exist!") end
     local id = handler_data.id
     local handler_filters = handler_data.filters
 
@@ -423,12 +423,12 @@ function flib_gui.update_filters(name, player_index, filters, mode)
     local __gui = storage.__flib.gui
     local saved_event_filters = __gui[id]
     if not saved_event_filters then
-      __gui[id] = {__size=1, [player_index]={__size=0}}
+      __gui[id] = { __size = 1, [player_index] = { __size = 0 } }
       saved_event_filters = __gui[id]
     end
     local saved_player_filters = saved_event_filters[player_index]
     if not saved_player_filters then
-      saved_event_filters[player_index] = {__size=0}
+      saved_event_filters[player_index] = { __size = 0 }
       saved_event_filters.__size = saved_event_filters.__size + 1
       saved_player_filters = saved_event_filters[player_index]
     end
@@ -436,7 +436,7 @@ function flib_gui.update_filters(name, player_index, filters, mode)
     -- handler filters table (in lookup)
     local handler_player_filters = handler_filters[player_index]
     if not handler_player_filters then
-      handler_filters[player_index] = {__size=0}
+      handler_filters[player_index] = { __size = 0 }
       handler_player_filters = handler_filters[player_index]
     end
 
@@ -471,7 +471,7 @@ function flib_gui.update_filters(name, player_index, filters, mode)
         handler_filters[player_index] = nil
       end
     else
-      error("Invalid GUI filter update mode ["..mode.."]")
+      error("Invalid GUI filter update mode [" .. mode .. "]")
     end
   end
 end

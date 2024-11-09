@@ -1,17 +1,20 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.10
+Version: 0.1.0
 Date: 2024-10-27
 
   Changes:
-    - make work with 2.0
-    - add in teleport functionality
+    - NOT TESTED OUTSIDE OF NAUVIS!!!!!
+    - made to work with 2.0
+    - add in teleport functionality to the quick map code
     - redo some styling
-    - replaced assert statements with if then else
+    - fixed bug affecting how icons were being retrieved (typo: elemets -> elements)
 
   Todo:
-    - determine if _0.1.0.lua file is necessary
-    - add in description page for deploy
-    - get help organizing files for deploy
-    - locale concerns
-    - update styling of gui
-
+    - make this unlockable by technology - make as an option?
+    - test with multiplayer
+    - TODO bug currently allows teleporting into a structure (high wire)
+    -      did changing snap fix this?
+    - TODO restyle interface
+    - TODO Add in functionality to have hotkey teleports 0-9?
+    -      with ability to list and edit those hotkeys
+    - TODO Make dialog react to enter key?
