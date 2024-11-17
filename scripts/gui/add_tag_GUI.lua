@@ -16,7 +16,7 @@ local add_tag_frame_template = function(text, icon, position_text)
         type = "flow",
         style = "frame_header_flow",
         children = {
-          { type = "label", style = "frame_title", caption = { "gui-tag-edit.frame_title" } },
+          { type = "label",        style = "frame_title",                      caption = { "gui-tag-edit.frame_title" } },
           { type = "empty-widget", save_as = "buttons.draggable_space_header", style = "flib_dialog_footer_drag_handle" },
           {
             type = "button",
@@ -39,20 +39,20 @@ local add_tag_frame_template = function(text, icon, position_text)
             style = PREFIX .. "add_tag_table",
             children = {
 
-              { type = "label", style = "label", caption = { "gui-tag-edit.teleport" } },
+              { type = "label",       style = "label",          caption = { "gui-tag-edit.teleport" } },
               {
                 type = "button",
                 save_as = "buttons.teleport",
-                style = PREFIX .. "red_confirm_button",                
+                style = PREFIX .. "red_confirm_button",
                 caption = position_text,
                 handlers = "add_tag.buttons.teleport"
               },
 
               -- couldn't get the line to span 2 columns so empty widget is the workaround
               { type = "empty-widget" },
-              { type = "line", direction = "horizontal", style = PREFIX .. "section_divider" },
+              { type = "line",        direction = "horizontal", style = PREFIX .. "section_divider" },
 
-              { type = "label", style = "label", caption = { "gui-tag-edit.name" } },
+              { type = "label",       style = "label",          caption = { "gui-tag-edit.name" } },
               {
                 type = "textfield",
                 save_as = "fields.text",
@@ -238,10 +238,28 @@ add_tag_GUI.handlers = {
       teleport = {
         on_gui_click = function(event)
           local player = game.get_player(event.player_index)
-          local pos = add_tag_GUI.get_position(player)
-          if (pos and player and player.teleport(pos, player.surface)) then
-            game.print(string.format("%s teleported to x: %d, y: %d", player.name, pos.x, pos.y))
-            add_tag_GUI.close(player)
+          if player then
+            local target_position = add_tag_GUI.get_position(player)
+            local og_position = player.position
+            local og_surface_index = player.surface_index
+            local settings = add_tag_settings.getPlayerSettings(player)
+            local radius = 10
+
+            local tele_pos, msg = map_tag_utils.teleport_player_to_closest_position(player, target_position, radius)
+            if tele_pos then
+              game.print(string.format("%s teleported to x: %d, y: %d", player.name, tele_pos.x, tele_pos.y))
+              add_tag_GUI.close()
+
+              script.raise_event(defines.events.script_raised_teleported,
+                {
+                  entity = player.character,
+                  old_surface_index = og_surface_index,
+                  old_position = og_position
+                }
+              )
+            else
+              game.print(msg)
+            end
           end
         end
       }

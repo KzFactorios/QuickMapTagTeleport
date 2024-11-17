@@ -1,6 +1,6 @@
-local add_tag_settings = require("scripts/settings/add_tag_settings")
+local add_tag_settings = require("settings/add_tag_settings")
 
-local PREFIX = require("scripts/settings/constants").PREFIX
+local PREFIX = require("settings/constants").PREFIX
 
 data:extend({
   {
@@ -25,6 +25,14 @@ data:extend({
     default_value = add_tag_settings.NEW_TAG_ICON_DEFAULT,
     allow_blank = true,
     allowed_values = add_tag_settings.NEW_TAG_ICON_ALLOWED_VALUES
+  },
+  {
+    name = PREFIX .. "teleport-radius",
+    type = "int-setting",
+    setting_type = "runtime-per-user",
+    default_value = add_tag_settings.TELEPORT_RADIUS_DEFAULT,
+    minimum_value = add_tag_settings.TELEPORT_RADIUS_MIN,
+    maximum_value = add_tag_settings.TELEPORT_RADIUS_MAX
   }
 
   --[[  This setting was removed for the Teleport functionality,

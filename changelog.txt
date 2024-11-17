@@ -4,17 +4,30 @@ Date: 2024-10-27
 
   Changes:
     - NOT TESTED OUTSIDE OF NAUVIS!!!!!
-    - made to work with 2.0
+    - ported code to work with 2.0
     - add in teleport functionality to the quick map code
     - redo some styling
     - fixed bug affecting how icons were being retrieved (typo: elemets -> elements)
 
   Todo:
-    - make this unlockable by technology - make as an option?
-    - test with multiplayer
+    - TODO make this unlockable by technology - make as an option?
+    - TODO test with multiplayer
     - TODO bug currently allows teleporting into a structure (high wire)
     -      did changing snap fix this?
     - TODO restyle interface
     - TODO Add in functionality to have hotkey teleports 0-9?
     -      with ability to list and edit those hotkeys
     - TODO Make dialog react to enter key?
+    - TODO enable the settings!
+    - TODO more code re-org
+---------------------------------------------------------------------------------------------------
+Version: 0.1.1
+Date: 2024-10-27
+
+  Changes:
+    - Test for collision conditions other than "tags only". Shouldn't be able to teleport into
+    -    things anymore.
+    - Update README.md and info.json
+    - Added settings back into the mix. The player can now control the following parameters:
+    -     Default tag icon, Default tag text, Snap scale, Teleport radius
+    - Add Teleport Collision Radius setting for upcoming feature changes
