@@ -9,5 +9,11 @@ return {
     gui.init()
     gui.build_lookup_tables()
     add_tag_GUI.on_init()
+  end,
+  ["0.1.1"] = function()
+    gui.init()
+    gui.build_lookup_tables()
+    add_tag_GUI.on_init()
   end
 }
+

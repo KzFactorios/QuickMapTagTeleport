@@ -250,6 +250,7 @@ add_tag_GUI.handlers = {
               game.print(string.format("%s teleported to x: %d, y: %d", player.name, tele_pos.x, tele_pos.y))
               add_tag_GUI.close()
 
+              -- provide a hook for others to key into
               script.raise_event(defines.events.script_raised_teleported,
                 {
                   entity = player.character,

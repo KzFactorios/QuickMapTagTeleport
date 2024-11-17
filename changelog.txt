@@ -22,11 +22,11 @@ Date: 2024-10-27
     - TODO more code re-org
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.1
-Date: 2024-10-27
+Date: 2024-11-17
 
   Changes:
-    - Test for collision conditions other than "tags only". Shouldn't be able to teleport into
-    -    things anymore.
+    - Test for collision conditions other than "tags only". Shouldn't be able to literally
+    -    teleport into things anymore.
     - Update README.md and info.json
     - Added settings back into the mix. The player can now control the following parameters:
     -     Default tag icon, Default tag text, Snap scale, Teleport radius

@@ -7,7 +7,8 @@ Tired of walking and running your game-time-life away? Can't fathom driving a ca
 
 What if you could simply open a dialog by **right-clicking** on the map view and teleport immediately to that location? 
 
-Maybe you have been stymied by having to go through multiple steps just to create a map tag? Now you can **right-click** and create your tag. That's it!
+Maybe you have been stymied by having to go through multiple steps just to create a map tag? 
+Simply **right-click** and create your tag. That's it!
 
 Based on the hard work of [Quick Map Tag](https://mods.factorio.com/mod/QuickMapTag) by **[templar4522](https://mods.factorio.com/user/templar4522)** and [Tag To Teleport](https://mods.factorio.com/mod/TagToTeleport) by **[darkfrei](https://mods.factorio.com/user/darkfrei)**
 

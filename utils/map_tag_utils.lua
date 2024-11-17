@@ -58,12 +58,15 @@ map_tag_utils.teleport_player_to_closest_position = function(player, target_posi
     player.character.name, -- Prototype name of the player's character
     target_position,       -- Target position to search around
     search_radius,         -- Search radius in tiles
-    2                      -- Precision (smaller values = more precise, but slower
+    6                      -- Precision (smaller values = more precise, but slower) Range 0.01 - 8
+    -- fastest but coarse, use 2-4
+    -- balanced, use 6
+    -- high precision, slowest, use 8
   )
 
   -- If a position is found, teleport the player there
   if closest_position then
-    if player.teleport(closest_position) then
+    if player.teleport(closest_position, player.surface) then
       return_pos = closest_position
       return_msg = ""
       -- note that caller is currently handling raising of teleport event
