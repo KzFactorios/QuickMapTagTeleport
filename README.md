@@ -1,9 +1,11 @@
 # Quick Map Tag Teleport
 
-**_And you may find yourself in another part of the world._**
+**_And you may find yourself in another part of the world..._**
 
 
-Tired of walking and running your game-time-life away? Can't fathom driving a car around your map, avoiding cliffs and lakes? Do you just want to get there already?
+Tired of walking and running your game-time-life away? 
+Can't fathom driving a car around your map, avoiding cliffs and lakes? 
+Don't you just want to get there already?
 
 What if you could simply open a dialog by **right-clicking** on the map view and teleport immediately to that location? 
 

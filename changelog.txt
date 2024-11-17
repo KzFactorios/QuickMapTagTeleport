@@ -25,9 +25,14 @@ Version: 0.1.1
 Date: 2024-11-17
 
   Changes:
-    - Test for collision conditions other than "tags only". Shouldn't be able to literally
-    -    teleport into things anymore.
+    - (fixed) Test for collision conditions other than "tags only". Shouldn't be able to 
+    -    literally teleport into things anymore.
     - Update README.md and info.json
     - Added settings back into the mix. The player can now control the following parameters:
     -     Default tag icon, Default tag text, Snap scale, Teleport radius
     - Add Teleport Collision Radius setting for upcoming feature changes
+
+  Todo:
+    - Hot buttons for favorites 0-9 in top gui. Switchable by settings 
+    - Ctrl + # for favorites
+    - Editor for favorites
