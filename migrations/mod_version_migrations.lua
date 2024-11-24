@@ -5,12 +5,17 @@ local add_tag_GUI = require("scripts/gui/add_tag_GUI")
 
 -- MUST be ordered from older to newer
 return {
-  ["0.1.0"] = function()
+  --[[["0.1.0"] = function()
+    gui.init()
+    gui.build_lookup_tables()
+    add_tag_GUI.on_init()
+  end,]]
+  ["0.1.1"] = function()
     gui.init()
     gui.build_lookup_tables()
     add_tag_GUI.on_init()
   end,
-  ["0.1.1"] = function()
+  ["0.1.2"] = function()
     gui.init()
     gui.build_lookup_tables()
     add_tag_GUI.on_init()
