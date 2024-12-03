@@ -17,4 +17,15 @@ data:extend {
     key_sequence = "",
     linked_game_control = "toggle-map"
   },
+  {
+    name = constants.events.FAVE_ORDER_UPDATED,
+    type = "custom-input",
+    key_sequence = "",
+  },
+  {
+    name = constants.events.SELECTED_FAVE_CHANGED,
+    type = "custom-input",
+    key_sequence = "",
+  },
+
 }

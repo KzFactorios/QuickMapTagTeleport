@@ -1,98 +1,84 @@
 --OK this is not a gui but it just seemed appropriate
 -- to put here
 local wutils = require("wct_utils")
-local table = require("__flib__.table")
+local table  = require("__flib__.table")
+local fave   = require("scripts/gui/fave")
+local cache  = require("lib/cache")
 --local add_tag_GUI = require("scripts.gui.add_tag_GUI")
 
-local qmtt = {}
+local qmtt   = {}
 
 --[[
 idx = "",
 position = {},
-favorite_list = {},
+faved_by_players = {},
 fave_displaytext = "",
 fave_description = "",
 ]]
 local next = next
 
 qmtt.init_QMTT = function()
-    -- storage.qmtt = nil
-    if storage.qmtt == nil then
-        storage.qmtt = {}
-    end
-    if storage.qmtt.tags == nil then
-        storage.qmtt.tags = {}
-    end
-
-    -- can we access chart tags yet?
 end
 
--- rebind any event handlers
-function qmtt.qmtt_load()
-
+function qmtt.create_new_qmtt(pos_idx, surface_id, position, player_index, display_text, description)
+    return {        
+        idx = pos_idx,
+        surface_id = surface_id,
+        position = position,
+        faved_by_players = { player_index },
+        fave_displaytext = display_text,
+        fave_description = description,
+    }
 end
 
-local map_tags = {}
-
-function qmtt.reset_chart_tags()
-    map_tags = nil
+function qmtt.reset_chart_tags(surface_id)
+    storage.qmtt.surfaces[surface_id].chart_tags = nil
 end
 
--- refreshes the map tags and returns a fresh collection
-function qmtt.get_chart_tags(player)
-    if map_tags == nil or #map_tags == 0 then
-        map_tags = player.force.find_chart_tags(player.surface)
-    end
-
-    return map_tags
-end
-
-function qmtt.is_player_favorite(q, player)
-    return wutils.tableContainsKey(q.favorite_list, player)
+-- leaving here for completeness, but not sure
+-- when to use it
+function qmtt.reset_extended_tags(surface_id)
+    storage.qmtt.surfaces[surface_id].extended_tags = nil
 end
 
 --TODO flesh out
-function qmtt.modify_tag(chart_tag, new_favow_display_text, new_description)
+function qmtt.modify_tag(surface_id, chart_tag, new_fave_display_text, new_description)
+    -- Event handler might do most of the heavy lifting
     local changed = false
     local pos_idx = wutils.format_idx_from_position(chart_tag.position)
     local found_qmtt = qmtt.get_matching_qmtt_by_pos_idx(pos_idx)
     local _qmtt = {}
+    qmtt.reset_chart_tags(surface_id) -- check to see if this is in the event handler in control.lua
 end
 
 --TODO flesh out
-function qmtt.remove_tag(chart_tag)
-    local pos_idx = wutils.format_idx_from_position(chart_tag.position)
-    local found_qmtt = qmtt.get_matching_qmtt_by_pos_idx(pos_idx)
+function qmtt.remove_tag(surface_id, chart_tag)
+    --local pos_idx = wutils.format_idx_from_position(chart_tag.position)
+    --local found_qmtt = qmtt.get_matching_qmtt_by_pos_idx(surface_id, pos_idx)
+
+    -- remove other references to this tag
+
+    -- remove the tag and it's extended tag
+
+    -- TODO remove element and raise event. Event handler should take care of the rest
 end
 
-function qmtt.get_matching_qmtt_by_position(position, player)
-    if not storage.qmtt or not storage.qmtt.tags then
-        qmtt.init_QMTT()
+function qmtt.get_matching_chart_tag_by_pos_idx(surface_id, pos_idx)
+    for _, v in pairs(storage.qmtt.surfaces[surface_id].chart_tags) do
+        if v.idx == pos_idx then
+            return v
+        end
     end
+    return nil
+end
 
-    local existing_q = wutils.find_element_by_key_and_value(
-        storage.qmtt.tags, "idx", wutils.format_idx_from_position(position))
-
-    if not existing_q then
-        existing_q = {
-            idx = wutils.format_idx_from_position(position),
-            position = position,
-            favorite_list = {},
-            fave_displaytext = "",
-            fave_description = "",
-        }
+function qmtt.get_matching_qmtt_by_pos_idx(surface_id, pos_idx)
+    for _, v in pairs(storage.qmtt.surfaces[surface_id].extended_tags) do
+        if v.idx == pos_idx then
+            return v
+        end
     end
-
-    return existing_q
-end
-
-function qmtt.get_matching_qmtt_by_pos_idx(posIdx)
-    return wutils.find_element_by_key(storage.qmtt.tags, "posIdx")
-end
-
-function qmtt.on_player_created(event)
-    -- destroy any guis
-    -- qmtt.qmtt_load()
+    return nil
 end
 
 function qmtt.on_configuration_changed(event)
@@ -103,14 +89,13 @@ end
 function qmtt.on_pre_player_left_game(event)
     -- destroy any guis
     -- remove player from player indexed storage
-    storage.GUI.qmtt.players[event.player_index] = nil
 end
 
 -- handle events from the stock edit controlm
 -- not sure if the tag_added will throw?
 -- going to try to make it not happen
 script.on_event(defines.events.on_chart_tag_added, function(event)
-    qmtt.reset_chart_tags()
+    --qmtt.reset_chart_tags()
     if event.player_index then
         --[[local editor = game.players[event.player_index].gui.screen["gui-tag-edit"]
         if editor then
@@ -127,17 +112,21 @@ script.on_event(defines.events.on_chart_tag_modified, function(event)
         local player = game.players[event.player_index]
         local old_pos = wutils.format_idx_from_position(event.old_position)
 
-        -- update matching tag
-        local stored_tag = wutils.find_element_by_key_and_value(qmtt.get_chart_tags(player), "idx", old_pos)
+        -- update matching chart_tag
+        local stored_tag =
+            wutils.find_element_by_position(cache.get_chart_tags_from_cache(player.index),
+                "position",
+                event.old_position)
         if stored_tag then
             stored_tag = table.deep_copy(event.tag)
         end
 
         -- update matching qmtt
-        if not storage.qmtt or not storage.qmtt.tags then
+        if not storage.qmtt or not storage.qmtt.ext_tags then
             qmtt.init_QMTT()
         end
-        local stored_qmtt = wutils.find_element_by_key_and_value(storage.qmtt.tags, "idx", old_pos)
+        local stored_qmtt =
+            wutils.find_element_by_key_and_value(storage.qmtt.ext_tags, "idx", old_pos)
         if stored_qmtt then
             stored_qmtt.idx = wutils.format_idx_from_position(event.tag.position)
             stored_qmtt.position = event.tag.position
@@ -145,105 +134,63 @@ script.on_event(defines.events.on_chart_tag_modified, function(event)
             stored_qmtt = {
                 idx = wutils.format_idx_from_position(event.tag.position),
                 position = event.tag.position,
-                favorite_list = {},
+                faved_by_players = {},
                 fave_displaytext = "",
                 fave_description = "",
             }
         end
+
+        -- TODO update favorite?
+
+        qmtt.reset_chart_tags(player.surface_id)
     end
 end)
 
+-- This gets fired from the stock GUI
 script.on_event(defines.events.on_chart_tag_removed, function(event)
     if game and event.player_index then
         local player = game.players[event.player_index]
         local pos_idx = wutils.format_idx_from_position(event.tag.position)
-        if storage.qmtt and storage.qmtt.tags then
-            local stored_qmtt = wutils.find_element_by_key_and_value(storage.qmtt.tags, "idx", pos_idx)            
-            if stored_qmtt then
-                wutils.remove_element(storage.qmtt.tags, stored_qmtt)
-                stored_qmtt.destroy()
+
+        local tableau = storage.qmtt.surfaces[player.surface_id].chart_tags
+        if tableau then
+            local stored = wutils.find_element_by_key_and_value(tableau, "idx", pos_idx)
+            if stored then
+                wutils.remove_element(tableau, stored)
+                stored.destroy()
             end
-            qmtt.reset_chart_tags()
         end
+
+        local extendo = storage.qmtt.surfaces[player.surface_id].extended_tags
+        if extendo then
+            local stored = wutils.find_element_by_key_and_value(extendo, "idx", pos_idx)
+            if stored then
+                wutils.remove_element(extendo, stored)
+                stored.destroy()
+            end
+        end
+
+        for _, v in storage.qmtt.GUI.edit_fave.players do
+            if v.selected_fave == pos_idx then
+                v.selected_fave = ''
+            end
+        end
+
+        for _, v in storage.qmtt.GUI.fav_bar.players do
+            for _, u in v.fave_places[player.surface_id] do
+                if u.idx == pos_idx then
+                    u = {
+                        idx = '',
+                        position = {},
+                        faved_by_players = {},
+                        fave_displaytext = '',
+                        fave_description = '',
+                    }
+                end
+            end
+        end
+        -- TODO do we need to worry aobut the elements of the fav bar?
+
+        qmtt.reset_chart_tags(player.surface_id)
     end
 end)
-
-function qmtt.add_tag_ensure_structure(player)
-    if not storage.GUI then storage.GUI = {} end
-    if not storage.GUI.AddTag then storage.GUI.AddTag = {} end
-    if not storage.GUI.AddTag.players then storage.GUI.AddTag.players = {} end
-    if not storage.GUI.AddTag.players[player.index] then
-        storage.GUI.AddTag.players[player.index] = {
-            elements = nil,
-            position = nil
-        }
-    end
-end
-
-function qmtt.add_tag_is_open(player)
-    if player then
-        qmtt.add_tag_ensure_structure(player)
-        return storage.GUI.AddTag.players[player.index].elements ~= nil
-    end
-end
-
-return qmtt
-
-
-
-
-
---[[function qmtt.add_tag_get_display_text(player)
-    if (player) then
-        if (not qmtt.add_tag_is_open(player)) then
-            return nil
-        end
-        return storage.GUI.AddTag.players[player.index].elements.fields.displaytext.text
-    end
-end
-
-function qmtt.add_tag_get_description(player)
-    if (player) then
-        if (not qmtt.add_tag_is_open(player)) then
-            return nil
-        end
-        return storage.GUI.AddTag.players[player.index].elements.fields.description.text
-    end
-end
-
-function qmtt.add_tag_get_favorite(player)
-    if (player) then
-        if (not qmtt.add_tag_is_open(player)) then
-            return nil
-        end
-        return storage.GUI.AddTag.players[player.index].elements.fields.favorite.state
-    end
-end]]
-
--- this handles the qmtt side of things ONLY!!
---[[function qmtt.add_new_tag(chart_tag)
-    local player = chart_tag.last_user
-    local player_index = player.index
-    local pos_idx = wutils.format_idx_from_position(chart_tag.position)
-
-    local favorite = qmtt.add_tag_get_favorite(player)
-    local fave_list = {}
-    if favorite then fave_list = { player_index } else fave_list = {} end
-
-    local _qmtt = {
-        idx = pos_idx,
-        position = chart_tag.position,
-        favorite_list = fave_list,
-        fave_displaytext = qmtt.add_tag_get_display_text(player),
-        fave_description = qmtt.add_tag_get_description(player),
-    }
-
-    local existing_q = qmtt.get_matching_qmtt_by_position(chart_tag.position, player)
-    if existing_q then
-        existing_q = _qmtt
-        return existing_q
-    end
-
-    storage.qmtt.tags[#storage.qmtt.tags + 1] = _qmtt
-    return storage.qmtt.tags[#storage.qmtt.tags]
-end]]

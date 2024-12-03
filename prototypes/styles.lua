@@ -111,3 +111,10 @@ gui_style["light_blue_button_style"] = {
       default_font_color = { 1, 0, 0 }, invert_colors = true },
   },
 }
+
+gui_style[PREFIX .. "edit-fave-gui-info-image"] = {
+  type = "image_style",
+  width = 20,
+  height = 50,
+  stretch_image_to_widget_size = true,
+}
