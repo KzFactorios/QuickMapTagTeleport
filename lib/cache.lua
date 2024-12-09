@@ -1,6 +1,4 @@
---local wutils = require("wct_utils")
 local table = require("__flib__.table")
-local event_manager = require("lib/event_manager")
 
 cache = {}
 
@@ -65,9 +63,9 @@ function cache.init_player(player)
         if not storage.qmtt.GUI.AddTag.players[player_index] then
             storage.qmtt.GUI.AddTag.players[player_index] = {}
         end
-        if not storage.qmtt.GUI.AddTag.players[player_index].elements then
+        --[[if not storage.qmtt.GUI.AddTag.players[player_index].elements then
             storage.qmtt.GUI.AddTag.players[player_index].elements = {}
-        end
+        end]]
         if not storage.qmtt.GUI.AddTag.players[player_index].position then
             storage.qmtt.GUI.AddTag.players[player_index].position = {}
         end
@@ -75,9 +73,9 @@ function cache.init_player(player)
         if not storage.qmtt.GUI.fav_bar.players[player_index] then
             storage.qmtt.GUI.fav_bar.players[player_index] = {}
         end
-        if not storage.qmtt.GUI.fav_bar.players[player_index].elements then
+        --[[if not storage.qmtt.GUI.fav_bar.players[player_index].elements then
             storage.qmtt.GUI.fav_bar.players[player_index].elements = {}
-        end
+        end]]
         if not storage.qmtt.GUI.fav_bar.players[player_index].fave_places then
             storage.qmtt.GUI.fav_bar.players[player_index].fave_places = {}
         end
@@ -92,61 +90,37 @@ function cache.init_player(player)
         if not storage.qmtt.GUI.edit_fave.players[player_index] then
             storage.qmtt.GUI.edit_fave.players[player_index] = {}
         end
-        if not storage.qmtt.GUI.edit_fave.players[player_index].elements then
+        --[[if not storage.qmtt.GUI.edit_fave.players[player_index].elements then
             storage.qmtt.GUI.edit_fave.players[player_index].elements = {}
-        end
+        end]]
         if not storage.qmtt.GUI.edit_fave.players[player_index].selected_fave then
             storage.qmtt.GUI.edit_fave.players[player_index].selected_fave = '' -- matches pos_idx
         end
     end
 end
 
--- resets a base key to nil
-local function reset_cache_key(cache_key)
-    storage.qmtt[cache_key] = nil
-end
-
--- adds a base key to the cache
-local function set_cache_key(cache_key, value)
-    storage.qmtt[cache_key] = value
-end
-
-local function get_cache_key(cache_key)
-    return storage.qmtt[cache_key]
-end
-
-function get_surface_chart_tags(player_index)
-    local player = game.players[player_index]
-    return player.force.find_chart_tags(player.surface_index)
-end
-
-function refresh_surface_chart_tags(player_index)
-    local player = game.players[player_index]
-    storage.qmtt.surfaces[player.surface_index].chart_tags = get_surface_chart_tags(player_index)
-end
-
-function cache.get_chart_tags_from_cache(player_index)
-    local player = game.players[player_index]
-    if not storage.qmtt.surfaces[player.surface_index].chart_tags or
-        #storage.qmtt.surfaces[player.surface_index].chart_tags == 0 then
-        refresh_surface_chart_tags(player_index)
+function cache.reset_surface_chart_tags(player)
+    if player then
+        storage.qmtt.surfaces[player.surface_index].chart_tags = nil
     end
-    return storage.qmtt.surfaces[player.surface_index].chart_tags
 end
 
-function get_extended_tags_from_cache(player_index)
-    local player = game.players[player_index]
-    return storage.qmtt.surfaces[player.surface_index].extended_tags
-end
-
-function find_extended_tag(player_index, position)
-    local tags = get_extended_tags_from_cache(player_index)
-    for i = 1, #tags do
-        if tags[i].position.x == position.x and tags[i].y == position.y then
-            return tags[i]
+function cache.get_chart_tags_from_cache(player)
+    if player then
+        local surf = storage.qmtt.surfaces[player.surface_index]
+        if not surf.chart_tags or #surf.chart_tags == 0 then
+            surf.chart_tags = player.force.find_chart_tags(player.surface_index)
         end
-        return nil
+        return surf.chart_tags
     end
+    return nil
+end
+
+function cache.get_extended_tags(player)
+    if player then
+        return storage.qmtt.surfaces[player.surface_index].extended_tags
+    end
+    return nil
 end
 
 function cache.get_matching_qmtt_by_position(surface_index, position)
@@ -174,7 +148,7 @@ function cache.get_matching_qmtt_by_position(surface_index, position)
     return existing_q
 end
 
-function tableContains(table, value)
+function cache.tableContains(table, value)
     for i = 1, #table do
         if (table[i] == value) then
             return true
@@ -193,20 +167,34 @@ function cache.is_player_favorite(qmtt, player_index)
 end
 
 function cache.extended_tag_is_player_favorite(tag, player_index)
-    return tableContains(tag.faved_by_players, player_index)
+    return cache.tableContains(tag.faved_by_players, player_index)
 end
 
+--- Returns the player's selected fave value == to _pos_idx
 function cache.get_player_selected_fave_pos_idx(player)
-    return storage.qmtt.GUI.edit_fave.players[player.index].selected_fave
+    if player then
+        return storage.qmtt.GUI.edit_fave.players[player.index].selected_fave
+    end
+    return ""
+end
+
+function cache.set_player_selected_fave(player, v)
+    if player then
+        storage.qmtt.GUI.edit_fave.players[player.index].selected_fave = v
+    end
 end
 
 function cache.get_player_selected_fave_idx(player)
-    local sel_fave = cache.get_player_selected_fave_pos_idx(player)
-    if sel_fave and sel_fave ~= '' then
-        local faves = cache.get_player_favorites(player)
-        for i = 1, #faves do
-            if faves[i]._pos_idx == sel_fave then
-                return i
+    if player then
+        local sel_fave = cache.get_player_selected_fave_pos_idx(player)
+        if sel_fave and sel_fave ~= '' then
+            local faves = cache.get_player_favorites(player)
+            if faves then
+                for i = 1, #faves do
+                    if faves[i]._pos_idx == sel_fave then
+                        return i
+                    end
+                end
             end
         end
     end
@@ -214,29 +202,40 @@ function cache.get_player_selected_fave_idx(player)
 end
 
 function cache.get_player_selected_favorite(player)
-    local pos = cache.get_player_selected_fave_pos_idx(player)
-    return cache.get_player_favorite_by_pos_idx(player, pos)
+    if player then
+        local pos = cache.get_player_selected_fave_pos_idx(player)
+        return cache.get_player_favorite_by_pos_idx(player, pos)
+    end
+    return ""
 end
 
-
 function cache.get_player_favorites(player)
-    local places = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.surface_index] or {}
-    -- TODO make this a setting
-    if #places < 10 then
-        for i = #places + 1, 10 do
-            places[i] = {
-                _pos_idx = ''                
-            }
+    if player then
+        local places = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.surface_index] or {}
+        -- TODO make this a setting
+        -- ensure we have a full 10 places
+        if #places < 10 then
+            for i = #places + 1, 10 do
+                places[i] = {
+                    _pos_idx = '',
+                    _surface_id = -1,
+                }
+            end
         end
+        return places
     end
-    return places
+    return nil
 end
 
 function cache.get_player_favorite_by_pos_idx(player, pos)
-    local faves = cache.get_player_favorites(player)
-    for _, v in pairs(faves) do
-        if v._pos_idx == pos then
-            return v
+    if player then
+        local faves = cache.get_player_favorites(player)
+        if faves then
+            for _, v in pairs(faves) do
+                if v._pos_idx == pos then
+                    return v
+                end
+            end
         end
     end
     return nil

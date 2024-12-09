@@ -9,15 +9,11 @@ function wutils.format_idx_from_position_x_y(x, y)
     return string.format("%s.%s", tostring(math.floor(x)), tostring(math.floor(y)))
 end
 
-function wutils.find_chart_tag_by_pos_idx(tbl, pos_idx)
-    if tbl and #tbl > 0 then
-        for _, element in pairs(tbl) do
-            if wutils.format_idx_from_position(element.position) == pos_idx then
-                return element
-            end
-        end
-    end
-    return nil
+function wutils.format_idx_string_from_pos_idx(pos_idx)
+    if not pos_idx or pos_idx == "" then return "" end
+    local pos = wutils.decode_position_from_pos_idx(pos_idx)
+    if not pos or pos == "" then return "" end
+    return string.format("x: %s, y: %s", tostring(math.floor(pos.x)), tostring(math.floor(pos.y)))
 end
 
 function wutils.find_element_by_key_and_value(tbl, key, value)
@@ -32,6 +28,7 @@ function wutils.find_element_by_key_and_value(tbl, key, value)
 end
 
 function wutils.decode_position_from_pos_idx(pos_idx)
+    if not pos_idx then return nil end
     local position = {}
     local x, y = pos_idx:match("([^%.]+)%.([^%.]+)")
     position["x"] = x
@@ -56,15 +53,33 @@ end
 -- TODO make this pretty!!! Learn more about Lua!
 function wutils.find_element_by_position(tbl, key, pos)
     for _, element in pairs(tbl) do
-        if element[key] and
-            (tostring(element[key]["x"]) == pos.x and tostring(element[key]["y"]) == pos.y) or
-            (tostring(element[key].x) == pos.x and tostring(element[key].y) == pos.y) or
-            (tostring(element[key].x) == tostring(pos.x) and tostring(element[key].y) == tostring(pos.y))
-        then
-            return element
+        if element ~= {} and element[key] ~= nil then
+            if element[key].x ~= nil and element[key].y ~= nil and pos and
+                (tostring(element[key]["x"]) == pos.x and tostring(element[key]["y"]) == pos.y) or
+                (tostring(element[key].x) == pos.x and tostring(element[key].y) == pos.y) or
+                (tostring(element[key].x) == tostring(pos.x) and tostring(element[key].y) == tostring(pos.y))
+            then
+                return element
+            end
         end
     end
     return nil
+end
+
+--- Can return nil - so check for nil
+function wutils.find_element_idx_by_position(tbl, key, pos)
+    for idx, element in pairs(tbl) do
+        if element ~= {} and element[key] ~= nil then
+            if element[key].x ~= nil and element[key].y ~= nil and pos and
+                (tostring(element[key]["x"]) == pos.x and tostring(element[key]["y"]) == pos.y) or
+                (tostring(element[key].x) == pos.x and tostring(element[key].y) == pos.y) or
+                (tostring(element[key].x) == tostring(pos.x) and tostring(element[key].y) == tostring(pos.y))
+            then
+                return idx
+            end
+        end
+    end
+    return -1
 end
 
 function wutils.find_element_by_key(tbl, key)
@@ -85,6 +100,22 @@ wutils.tableContainsKey = function(t, key)
     return false
 end
 
+--- remove the element by shifting the remaining elements down
+function wutils.remove_element_at_index(tbl, idx)
+    if not idx then return end
+    -- Validate inputs
+    if type(tbl) ~= "table" or type(idx) ~= "number" then
+        error("Invalid arguments: expected (table, number)")
+    end
+    local tbl_len = #tbl
+    if idx == 0 or idx > tbl_len then return end
+    for i = idx, tbl_len - 1 do
+        tbl[i] = tbl[i + 1]
+    end
+    tbl[tbl_len] = {} -- Remove the last element (duplicate after shifting)
+end
+
+--- remove the element and shift the remaining elements down
 function wutils.remove_element(tbl, key)
     local index = nil
     for i, v in ipairs(tbl) do
@@ -213,16 +244,29 @@ function wutils.get_element_index(t, key, value)
     return -1
 end
 
-function wutils.format_sprite_path(type, name)
+function wutils.format_sprite_path(type, name, is_signal)
+    if not name then name = "" end
+    if not type then type = "" end
+
+    if type == "" and not is_signal then type = "item" end
     if type == "virtual" then
         type = "virtual-signal"
     end
-    local sprite_path = type .. "/" .. name
+    if type ~= "" then
+        type = type .. "/"
+    end
+
+    local sprite_path = type .. name
     if not helpers.is_valid_sprite_path(sprite_path) then
         -- TODO better user messaging on error
-        sprite_path = ""
+        return ""
     end
+
     return sprite_path
+end
+
+function wutils.starts_with(haystack, needle)
+    return haystack:sub(1, #needle) == needle
 end
 
 return wutils

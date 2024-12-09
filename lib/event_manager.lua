@@ -1,17 +1,7 @@
--- event_manager.lua
---local cache = require("lib/cache")
-
 local event_manager = {}
 
 -- Register an event
 function event_manager.register(event_name, event_id, handler)
-    -- register occurs before on_tick!
-    --[[if not storage.qmtt then
-        storage.qmtt = {}
-    end
-    if not storage.qmtt.registered_events then
-        storage.qmtt.registered_events = {}
-    end]]
     if not storage.qmtt.registered_events[event_name] then
         script.on_event(event_id, handler)
         storage.qmtt.registered_events[event_name] = event_id

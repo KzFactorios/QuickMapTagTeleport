@@ -1,3 +1,4 @@
+
 data:extend({
   {
     type = "font",
@@ -13,7 +14,7 @@ data:extend({
     priority = "extra-high",
     size = { 32, 49 },
     flags = { "gui-icon" },
-  }
+  },  
 })
 
 

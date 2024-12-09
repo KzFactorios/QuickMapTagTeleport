@@ -38,11 +38,13 @@ end
 function on_teleport(event)
   if event and event.entity and event.entity.player then
     local player = event.entity.player
+    if player then
     --[[player.surface.play_sound({m
       path = "wct-qmtt-construction-robot",
       position = player.position,
       volume = 1.0
     })]]
+    end
   end
 end
 

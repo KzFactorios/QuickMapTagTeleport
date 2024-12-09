@@ -1,12 +1,12 @@
-local gui = require("lib/gui")
-local mod_gui = require("mod-gui")
+local gui              = require("lib/gui")
+--local mod_gui          = require("mod-gui")
 local add_tag_settings = require("settings/add_tag_settings")
-local map_tag_utils = require("utils/map_tag_utils")
-local wutils = require("wct_utils")
-local cache = require("lib/cache")
+local map_tag_utils    = require("utils/map_tag_utils")
+local wutils           = require("wct_utils")
+local cache            = require("lib/cache")
 
-local constants = require("settings/constants")
-local PREFIX = constants.PREFIX
+local constants        = require("settings/constants")
+local PREFIX           = constants.PREFIX
 
 local function add_tag_frame_template(formatted_position, text, icon, _qmtt, element_favorite)
   return
@@ -18,56 +18,50 @@ local function add_tag_frame_template(formatted_position, text, icon, _qmtt, ele
     handlers = "add_tag.root_frame",
     children = {
 
-      {
-        type = "flow",
-        style = "frame_header_flow",
+      {        type = "frame",
+        name = "header-row",
+        style = "header_frame",
+        direction = "horizontal",
         children = {
           { type = "label",        style = "frame_title",                      caption = { "gui-tag-edit.frame_title" } },
           { type = "empty-widget", save_as = "buttons.draggable_space_header", style = "flib_dialog_footer_drag_handle" },
           {
             type = "button",
+            name = "button-cancel-header",
             save_as = "buttons.cancel_h",
             style = PREFIX .. "frame_action_button",
             caption = { "gui-tag-edit.x" },
             handlers = "add_tag.buttons.cancel"
-          }
+          },
         }
       },
 
-      {
-        type = "frame",
-        direction = "vertical",
+
+      {        type = "frame",
+        name = "table-container",
         style = "inside_shallow_frame_with_padding",
+        direction = "vertical",
         children = {
           {
             type = "table",
+            name="table-proper",
             column_count = 2,
             style = PREFIX .. "add_tag_table",
             children = {
-
-              { type = "label",       style = "label",          caption = { "gui-tag-edit.teleport" } },
+              { type = "label", style = "label",          caption = { "gui-tag-edit.teleport" } },
               {
                 type = "button",
+                name = "button-teleport",
                 save_as = "buttons.teleport",
                 style = PREFIX .. "red_confirm_button",
                 caption = formatted_position,
                 handlers = "add_tag.buttons.teleport"
               },
 
-              -- couldn't get the line to span 2 columns so empty widget is the workaround
-              { type = "empty-widget" },
-              { type = "line",        direction = "horizontal", style = PREFIX .. "section_divider" },
-
-              {
-                type = "choose-elem-button",
-                save_as = "fields.icon",
-                style = "slot_button_in_shallow_frame",
-                elem_type = "signal",
-                signal = icon,
-                handlers = "add_tag.fields.icon"
-              },
+              { type = "label", style = "label",          caption = "Name" },
               {
                 type = "text-box",
+                name = "text-name",
                 save_as = "fields.text",
                 text = text,
                 style = PREFIX .. "add_tag_textfield",
@@ -75,43 +69,38 @@ local function add_tag_frame_template(formatted_position, text, icon, _qmtt, ele
                 handlers = "add_tag.fields.text"
               },
 
-              { type = "label",       style = "label",          caption = { "gui-tag-edit.icon" } },
-              { type = "label",       style = "label",          caption = { "gui-tag-edit.name" } },
-
-              -- couldn't get the line to span 2 columns so empty widget is the workaround
-              { type = "empty-widget" },
-              { type = "line",        direction = "horizontal", style = PREFIX .. "section_divider" },
-
+              { type = "label", caption = "Favorite" },
               {
                 type = "checkbox",
+                name = "checkbox-favorite",
                 save_as = "fields.favorite",
                 state = element_favorite,
-                handlers = "add_tag.fields.favorite"
+                --handlers = "add_tag.fields.favorite"
               },
+
               {
-                type = "textfield",
-                save_as = "fields.displaytext",
-                text = _qmtt.fave_displaytext,
-                style = PREFIX .. "add_tag_textfield",
-                handlers = "add_tag.fields.displaytext"
+                type = "choose-elem-button",
+                name = "elem-icon",
+                save_as = "fields.icon",
+                style = "fav_bar_slot_button_in_shallow_frame",
+                elem_type = "signal",
+                signal = icon,
+                handlers = "add_tag.fields.icon"
               },
-              {
-                type = "textfield",
-                save_as = "fields.description",
-                text = _qmtt.fave_description,
-                style = PREFIX .. "add_tag_textfield",
-                handlers = "add_tag.fields.description"
-              },
-            }
-          }
-        }
+
+            },
+          },
+        },
       },
       {
-        type = "flow",
-        style = "dialog_buttons_horizontal_flow",
+        type = "frame",
+        name = "action-row",
+        style = "row_container",
+        direction = "horizontal",
         children = {
           {
             type = "button",
+            name = "button-cancel",
             save_as = "buttons.cancel",
             style = "back_button",
             caption = { "gui-tag-edit.cancel" },
@@ -120,6 +109,7 @@ local function add_tag_frame_template(formatted_position, text, icon, _qmtt, ele
           { type = "empty-widget", save_as = "buttons.draggable_space_footer", style = "flib_dialog_footer_drag_handle" },
           {
             type = "button",
+            name = "button-confirm",
             save_as = "buttons.confirm",
             style = "confirm_button",
             caption = { "gui-tag-edit.confirm" },
@@ -127,8 +117,44 @@ local function add_tag_frame_template(formatted_position, text, icon, _qmtt, ele
             enabled = (icon ~= nil or text ~= "")
           }
         }
-      }
-
+      },
+      {
+        type = "frame",
+        visible = false,
+        column_count = 2,
+        name = "display-text-row",
+        style = "row_container",
+        direction = "horizontal",
+        children = {
+          { type = "label", style = "label", caption = "Display Text" },
+          {
+            type = "textfield",
+            name = "text-display",
+            save_as = "fields.displaytext",
+            text = _qmtt.fave_displaytext,
+            style = PREFIX .. "add_tag_textfield",
+            --handlers = "add_tag.fields.displaytext"
+          },
+        }
+      },
+      {
+        type = "frame",
+        visible = false,
+        name = "description-row",
+        style = "row_container",
+        direction = "horizontal",
+        children = {
+          { type = "label", style = "label", caption = "Description" },
+          {
+            type = "textfield",
+            name = "text-description",
+            save_as = "fields.description",
+            text = _qmtt.fave_description,
+            style = PREFIX .. "add_tag_textfield",
+            --handlers = "add_tag.fields.description"
+          },
+        },
+      },
     }
   } -- end of root frame
 end
@@ -140,52 +166,32 @@ end
 
 function add_tag_GUI.on_pre_player_left_game(event)
   -- destroy any guis
-  add_tag_GUI.close(event.player_index)
-  -- remove player from player indexed storage
-  storage.qmtt.GUI.AddTag.players[event.player_index] = nil
+  local player = game.players[event.player_index]
+  if player then
+    add_tag_GUI.close(player)
+    -- remove player from player indexed storage
+    storage.qmtt.GUI.AddTag.players[event.player_index] = nil
+  end
 end
 
 function add_tag_GUI.on_player_removed(event)
-  add_tag_GUI.close(event.player_index)
-  storage.qmtt.GUI.AddTag.players[event.player_index] = nil
+  local player = game.players[event.player_index]
+  if player then
+    add_tag_GUI.close(player)
+    storage.qmtt.GUI.AddTag.players[event.player_index] = nil
+  end
 end
 
 -- Handle confirmation (Enter key)
 script.on_event(defines.events.on_gui_confirmed, function(event)
   if event.element.name == "add_tag_GUI" then
-    local entered_text = event.element.text
-    --game.print("Text confirmed: " .. entered_text)
-
-    -- Close the editor or perform another action
     event.element.parent.destroy()
   end
 end)
 
 function add_tag_GUI.is_open(player)
   if player then
-    add_tag_GUI.ensure_structure(player)
-    return storage.qmtt.GUI.AddTag.players[player.index].elements ~= nil and
-        storage.qmtt.GUI.AddTag.players[player.index].elements.buttons ~= nil and
-        storage.qmtt.GUI.AddTag.players[player.index].elements.fields ~= nil
-  end
-end
-
-function add_tag_GUI.ensure_structure(player)
-  if not storage.qmtt.GUI then storage.qmtt.GUI = {} end
-  if not storage.qmtt.GUI.AddTag then storage.qmtt.GUI.AddTag = {} end
-  if not storage.qmtt.GUI.AddTag.players then storage.qmtt.GUI.AddTag.players = {} end
-  if not storage.qmtt.GUI.AddTag.players[player.index] then
-    storage.qmtt.GUI.AddTag.players[player.index] = {}
-  end
-end
-
-function kill_gui(player)
-  add_tag_GUI.ensure_structure(player)
-  if storage.qmtt.GUI.AddTag.players[player.index].elements then
-    storage.qmtt.GUI.AddTag.players[player.index].elements = nil
-  end
-  if player.gui.screen["tag-edit-gui"] then
-    player.gui.screen["tag-edit-gui"].destroy()
+    return player.gui.screen["gui-tag-edit"] ~= nil
   end
 end
 
@@ -195,14 +201,18 @@ end
 
 function add_tag_GUI.open(player, position_to_open_from)
   local position = position_to_open_from
+  --local tagedit = mod_gui.get_frame_flow(player)["AddTag"]
+
   if player and position then
-    kill_gui(player)
+    if add_tag_GUI.is_open(player) then
+      add_tag_GUI.close(player)
+    end
 
     local settings = add_tag_settings.getPlayerSettings(player)
     local posTxt = add_tag_GUI.format_position_text(position)
 
     -- find tags with position =
-    local _tags = cache.get_chart_tags_from_cache(player.index)
+    local _tags = cache.get_chart_tags_from_cache(player)
     local _tag = wutils.find_element_by_position(_tags, "position", position)
 
     local _qmtt = cache.get_matching_qmtt_by_position(player.surface_index, position)
@@ -234,11 +244,6 @@ function add_tag_GUI.open(player, position_to_open_from)
     end
 
     local element_favorite = cache.extended_tag_is_player_favorite(_qmtt, player.index)
-
-
-    -- mod_gui_inner_frame is the parent
-    --local champ = mod_gui.get_frame_flow(player)
-    -- the dialog is in the screen!
     local elements = gui.build(player.gui.screen,
       { add_tag_frame_template(posTxt, new_tag_text, new_tag_icon, _qmtt, element_favorite) })
 
@@ -246,28 +251,15 @@ function add_tag_GUI.open(player, position_to_open_from)
     elements.fields.text.focus()
     elements.buttons.draggable_space_header.drag_target = elements.root_frame
     elements.buttons.draggable_space_footer.drag_target = elements.root_frame
-
-    -- Not sure if this will fix the problem aka are we building the player correctly?
-    --if not storage.qmtt.GUI.AddTag.players[player.index] then
-    --  storage.qmtt.GUI.AddTag.players[player.index] = player
-    --end
-
-    storage.qmtt.GUI.AddTag.players[player.index].elements = elements
     storage.qmtt.GUI.AddTag.players[player.index].position = position
-    player.opened = elements.root_frame
   end
 end
 
 function add_tag_GUI.close(player)
   if player then
-    if not add_tag_GUI.is_open(player) then
-      return
-    end
-    player.opened = nil
-    if player.gui.screen["gui-tag-edit"] then
+    if add_tag_GUI.is_open(player) then
       player.gui.screen["gui-tag-edit"].destroy()
     end
-    storage.qmtt.GUI.AddTag.players[player.index].elements = nil
   end
 end
 
@@ -278,48 +270,46 @@ function add_tag_GUI.get_position(player_index)
 end
 
 function add_tag_GUI.get_text(player)
-  if (player) then
-    if (not add_tag_GUI.is_open(player)) then
-      return nil
+  if player then
+    if add_tag_GUI.is_open(player) then
+      -- PREFIX .. "add_tag_table"
+      return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["text-name"].text
     end
-    return storage.qmtt.GUI.AddTag.players[player.index].elements.fields.text.text
   end
+  return ""
 end
 
-function add_tag_GUI.get_displaytext(player)
-  if (player) then
-    if (not add_tag_GUI.is_open(player)) then
-      return nil
+--[[function add_tag_GUI.get_displaytext(player)
+  if player then
+    if add_tag_GUI.is_open(player) then
+      return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["text-display"].text
     end
-    return storage.qmtt.GUI.AddTag.players[player.index].elements.fields.displaytext.text
   end
+  return ""
 end
 
 function add_tag_GUI.get_description(player)
-  if (player) then
-    if (not add_tag_GUI.is_open(player)) then
-      return nil
+  if player then
+    if add_tag_GUI.is_open(player) then
+      return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["text-description"].text
     end
-    return storage.qmtt.GUI.AddTag.players[player.index].elements.fields.description.text
   end
-end
+  return ""
+end]]
 
 function add_tag_GUI.get_favorite(player)
-  if (player) then
-    if (not add_tag_GUI.is_open(player)) then
-      return nil
+  if player then
+    if add_tag_GUI.is_open(player) then
+      return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["checkbox-favorite"].state
     end
-    return storage.qmtt.GUI.AddTag.players[player.index].elements.fields.favorite.state
   end
+  return false
 end
 
 function add_tag_GUI.get_icon(player)
   if player then
-    if (not add_tag_GUI.is_open(player)) then
-      return nil
-    end
-    if storage.qmtt.GUI.AddTag.players[player.index].elements then
-      return storage.qmtt.GUI.AddTag.players[player.index].elements.fields.icon.elem_value
+    if add_tag_GUI.is_open(player) then
+      return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["elem-icon"].elem_value
     end
   end
   return nil
@@ -327,42 +317,49 @@ end
 
 local function on_fields_values_changed(event)
   local player = game.get_player(event.player_index)
-  local text = add_tag_GUI.get_text(player)
-  local icon = add_tag_GUI.get_icon(player)
-  local enabled = icon ~= nil or text ~= ""
-  storage.qmtt.GUI.AddTag.players[event.player_index].elements.buttons.confirm.enabled = enabled
+  if player and add_tag_GUI.is_open(player) then
+    local text = add_tag_GUI.get_text(player)
+    local icon = add_tag_GUI.get_icon(player)
+    local enabled = icon ~= nil or text ~= ""
+    player.gui.screen["gui-tag-edit"]["action-row"]["button-confirm"].enabled = enabled
+  end
 end
 
 add_tag_GUI.handlers = {
   add_tag = {
     root_frame = {
       on_gui_closed = function(event)
-        storage.qmtt.GUI.AddTag.players[event.player_index].elements.root_frame.destroy()
-        storage.qmtt.GUI.AddTag.players[event.player_index] = {}
+        -- gui should be closed
+        -- do any other cleanup
       end
     },
     fields = {
       text = {
         on_gui_text_changed = on_fields_values_changed
       },
+
+      icon = {
+        on_gui_elem_changed = on_fields_values_changed
+      },
+      --[[
       displaytext = {
         on_gui_text_changed = on_fields_values_changed
       },
       description = {
         on_gui_text_changed = on_fields_values_changed
       },
-      icon = {
-        on_gui_elem_changed = on_fields_values_changed
-      },
       favorite = {
         on_gui_state_changed = on_fields_values_changed
       }
+        ]]
     },
     buttons = {
       cancel = {
         on_gui_click = function(event)
           local player = game.get_player(event.player_index)
-          add_tag_GUI.close(player)
+          if player then
+            add_tag_GUI.close(player)
+          end
         end
       },
       confirm = {
@@ -374,11 +371,12 @@ add_tag_GUI.handlers = {
               add_tag_GUI.get_position(player.index),
               add_tag_GUI.get_text(player),
               add_tag_GUI.get_icon(player),
-              add_tag_GUI.get_displaytext(player),
-              add_tag_GUI.get_description(player),
+              "",--add_tag_GUI.get_displaytext(player),
+              "",--add_tag_GUI.get_description(player),
               add_tag_GUI.get_favorite(player)
             )
             add_tag_GUI.close(player)
+            control.update_uis(player)
           end
         end
       },
@@ -389,14 +387,13 @@ add_tag_GUI.handlers = {
             local target_position = add_tag_GUI.get_position(player.index)
             local og_position = player.position
             local og_surface_index = player.surface_index
-            --local settings = add_tag_settings.getPlayerSettings(player)
             -- TODO assign a player setting
             local radius = 10
 
             local tele_pos, msg = map_tag_utils.teleport_player_to_closest_position(player, target_position, radius)
             if tele_pos then
               game.print(string.format("%s teleported to x: %d, y: %d", player.name, tele_pos.x, tele_pos.y))
-              add_tag_GUI.close()
+              add_tag_GUI.close(player)
 
               -- provide a hook for others to key into
               ---@diagnostic disable-next-line: param-type-mismatch
@@ -418,3 +415,20 @@ add_tag_GUI.handlers = {
 }
 
 return add_tag_GUI
+
+
+--[[
+
+
+function add_tag_GUI.ensure_structure(player)
+  if not storage.qmtt.GUI then storage.qmtt.GUI = {} end
+  if not storage.qmtt.GUI.AddTag then storage.qmtt.GUI.AddTag = {} end
+  if not storage.qmtt.GUI.AddTag.players then storage.qmtt.GUI.AddTag.players = {} end
+  if not storage.qmtt.GUI.AddTag.players[player.index] then
+    storage.qmtt.GUI.AddTag.players[player.index] = {}
+  end
+end
+
+
+
+]]
