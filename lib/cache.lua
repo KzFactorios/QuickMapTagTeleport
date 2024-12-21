@@ -1,4 +1,5 @@
 local table = require("__flib__.table")
+local wutils = require("wct_utils")
 
 cache = {}
 
@@ -249,6 +250,35 @@ function cache.update_player_scale(player_index)
     local player = game.get_player(player_index)
     if player and storage.qmtt.player_data then
         storage.qmtt.player_data[player_index].interface_scale = player.display_scale
+    end
+end
+
+function cache.remove_player_data(player_index)
+    local player = game.get_player(player_index)
+    if player then
+        -- make sure each gui is destroyed
+        if storage.qmtt.player_data[player_index] then
+        storage.qmtt.player_data[player_index] = nil
+        end
+        if storage.qmtt.GUI.fav_bar.players[player_index] then
+            storage.qmtt.GUI.fav_bar.players[player_index] = nil
+        end
+        if storage.qmtt.GUI.AddTag.players[player_index] then
+            storage.qmtt.GUI.AddTag.players[player_index] = nil
+        end
+        if storage.qmtt.GUI.edit_fave.players[player_index] then
+            storage.qmtt.GUI.edit_fave.players[player_index] = nil
+        end
+    end
+
+    for _, surface_idx in pairs(storage.qmtt.surfaces) do
+        for _, o in pairs(surface_idx) do
+            for _, et in pairs(o.extended_tags) do
+                if wutils.tableContainsKey(et.faved_by_players, player_index) then
+                    wutils.remove_element(et.faved_by_players, player_index)
+                end
+            end
+        end 
     end
 end
 

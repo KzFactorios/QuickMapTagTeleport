@@ -29,6 +29,13 @@ function fav_bar_GUI.update_ui(player)
     end
 end
 
+function fav_bar_GUI.on_player_removed(player_index)
+    local player = game.players[player_index]
+    if player then
+        fav_bar_GUI.close(player)
+    end
+end
+
 --- OBS
 function sync_buttons_to_faves(player)
     if player then

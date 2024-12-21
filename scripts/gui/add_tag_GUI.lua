@@ -164,21 +164,12 @@ local add_tag_GUI = {}
 function add_tag_GUI.on_player_created(event)
 end
 
-function add_tag_GUI.on_pre_player_left_game(event)
-  -- destroy any guis
-  local player = game.players[event.player_index]
+--- Close the gui and remove player refs to AddTag
+function add_tag_GUI.on_player_removed(player_index)
+  local player = game.players[player_index]
   if player then
     add_tag_GUI.close(player)
-    -- remove player from player indexed storage
-    storage.qmtt.GUI.AddTag.players[event.player_index] = nil
-  end
-end
-
-function add_tag_GUI.on_player_removed(event)
-  local player = game.players[event.player_index]
-  if player then
-    add_tag_GUI.close(player)
-    storage.qmtt.GUI.AddTag.players[event.player_index] = nil
+    storage.qmtt.GUI.AddTag.players[player_index] = nil
   end
 end
 

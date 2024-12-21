@@ -76,11 +76,6 @@ function qmtt.on_configuration_changed(event)
     -- qmtt.qmtt_load()
 end
 
-function qmtt.on_pre_player_left_game(event)
-    -- destroy any guis
-    -- remove player from player indexed storage
-end
-
 -- handle events from the stock edit controlm
 -- not sure if the tag_added will throw?
 -- going to try to make it not happen

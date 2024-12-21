@@ -150,8 +150,11 @@ function edit_fave_GUI.update_ui(player_index)
     end
 end
 
-function edit_fave_GUI.on_configuration_changed(event)
-    local stub = 'stub'
+function edit_fave_GUI.on_player_removed(player_index)
+    local player = game.players[player_index]
+    if player then
+        edit_fave_GUI.close(player)
+    end
 end
 
 function edit_fave_GUI.is_open(player)

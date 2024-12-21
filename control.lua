@@ -5,7 +5,6 @@ local wutils                     = require("wct_utils")
 local map_tag_utils              = require("utils/map_tag_utils")
 local fave                       = require("scripts/gui/fave")
 local table                      = require("__flib__.table")
-
 --local serpent = require("serpent")
 
 local mod_version_migrations     = require("migrations/mod_version_migrations")
@@ -14,7 +13,6 @@ local add_tag_GUI                = require("scripts/gui/add_tag_GUI")
 local fav_bar_GUI                = require("scripts/gui/fav_bar_GUI")
 local edit_fave_GUI              = require("scripts/gui/edit_fave_GUI")
 local qmtt                       = require("scripts/gui/qmtt")
---local event_manager              = require("lib.event_manager")
 
 local constants                  = require("settings/constants")
 local PREFIX                     = constants.PREFIX
@@ -30,21 +28,45 @@ script.on_load(function()
   gui.build_lookup_tables()
 end)
 
-script.on_configuration_changed(function(event)
-  migration.on_config_changed(event, mod_version_migrations)
-  edit_fave_GUI.on_configuration_changed(event)
-end)
-
 script.on_event(defines.events.on_player_created, function(event)
   cache.on_player_created(event)
 end)
 
-script.on_event(defines.events.on_pre_player_left_game, function(event)
-  add_tag_GUI.on_pre_player_left_game(event)
-  qmtt.on_pre_player_left_game(event)
+script.on_configuration_changed(function(event)
+  -- TODO remove from any indexed storage
+  if event.mod_changes and event.mod_changes["QuickMapTagTeleport"] then
+    local changes = event.mod_changes["QuickMapTagTeleport"]
+    if changes.old_version and not changes.new_version then
+      -- cleanup gui for all players
+       if game then
+        for _, player in (game.players) do
+          add_tag_GUI.on_player_removed(player.index)
+          fav_bar_GUI.on_player_removed(player.index)
+        end
+       end
+      -- Mod is being removed, clean up data
+      -- This will kill ALL qmtt data
+      storage.qmtt = nil
+    end
+  end
 end)
 
---script.on_event(defines.events.on_player_removed, add_tag_GUI.on_player_removed)
+--- Triggered when a player leaves a multiplayer session
+script.on_event(defines.events.on_player_left_game, function(event)
+  add_tag_GUI.on_player_removed(event.player_index)
+  fav_bar_GUI.on_player_removed(event.player_index)
+  edit_fave_GUI.on_player_removed(event.player_index)
+  cache.remove_player_data(event.player_index)
+end)
+
+--- Triggered when a player is removed from the game
+script.on_event(defines.events.on_player_removed, function(event)
+  add_tag_GUI.on_player_removed(event.player_index)
+  fav_bar_GUI.on_player_removed(event.player_index)
+  edit_fave_GUI.on_player_removed(event.player_index)
+  cache.remove_player_data(event.player_index)
+end)
+
 
 -- NOTHING IS HITTING THIS!!!!
 script.on_event(defines.events.on_gui_click, function(event)
@@ -73,7 +95,6 @@ script.on_event(constants.events.CLOSE_WITH_TOGGLE_MAP, custom_input_event_handl
 --local _maptag_editor_open = script.generate_event_name()
 --add_tag_GUI._maptag_editor_open = _maptag_editor_open
 --script.on_event(_maptag_editor_open, custom_input_event_handler.on_maptag_editor_open)
-
 
 script.on_event(constants.events.ADD_TAG_INPUT, custom_input_event_handler.on_add_tag)
 --script.on_event(constants.events.ED_EX_INPUT, custom_input_event_handler.on_ed_ex_input)
@@ -108,25 +129,21 @@ script.on_event(defines.events.on_player_changed_force, function(event)
   end
 end)
 
-
 local function reset_player_favorites(player)
   if player then
-
     local places = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.surface_index]
     for i = 1, #places do
       places[i] = {}
     end
 
     local extended = storage.qmtt.surfaces[player.surface_index].extended_tags
-    for i= 1, #extended do
+    for i = 1, #extended do
       extended[i].faved_by_players = {}
     end
 
     cache.set_player_selected_fave(player, "")
   end
 end
-
-
 
 local __initialized = false
 local function initialize()
@@ -135,7 +152,6 @@ local function initialize()
 
   for _, player in pairs(game.players) do
     if player then
-
       --reset_player_favorites(player)
 
       -- by destrying and updating, this should push faves to the end of the top bar?
@@ -220,22 +236,17 @@ gui.add_handlers(edit_fave_GUI.handlers)
 gui.register_handlers()
 
 constants.events.OPEN_STOCK_GUI = script.generate_event_name()
-script.on_event(constants.events.OPEN_STOCK_GUI,
-  custom_input_event_handler.on_open_stock_gui)
+script.on_event(constants.events.OPEN_STOCK_GUI, custom_input_event_handler.on_open_stock_gui)
 
 constants.events.FAVE_ORDER_UPDATED = script.generate_event_name()
-script.on_event(constants.events.FAVE_ORDER_UPDATED,
-  custom_input_event_handler.on_fave_order_updated)
+script.on_event(constants.events.FAVE_ORDER_UPDATED, custom_input_event_handler.on_fave_order_updated)
 
 constants.events.SELECTED_FAVE_CHANGED = script.generate_event_name()
-script.on_event(constants.events.SELECTED_FAVE_CHANGED,
-  custom_input_event_handler.on_selected_fave_changed)
+script.on_event(constants.events.SELECTED_FAVE_CHANGED, custom_input_event_handler.on_selected_fave_changed)
 
 script.on_event(defines.events.on_chart_tag_removed, function(event)
   qmtt.handle_chart_tag_removal(event)
 end)
-
-
 
 -- set events for hotkeys
 for i = 1, 10 do
@@ -260,7 +271,7 @@ end
 
 control = {}
 
---- for now, updates the favorites bar
+--- updates the favorites bar
 function control.update_uis(player)
   if player then
     fav_bar_GUI.update_ui(player)
