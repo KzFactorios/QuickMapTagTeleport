@@ -242,7 +242,8 @@ function add_tag_GUI.open(player, position_to_open_from)
     elements.fields.text.focus()
     elements.buttons.draggable_space_header.drag_target = elements.root_frame
     elements.buttons.draggable_space_footer.drag_target = elements.root_frame
-    storage.qmtt.GUI.AddTag.players[player.index].position = position
+    storage.qmtt.GUI.AddTag.players[player.index].position.x = position.x
+    storage.qmtt.GUI.AddTag.players[player.index].position.y = position.y
   end
 end
 

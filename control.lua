@@ -248,6 +248,19 @@ script.on_event(defines.events.on_chart_tag_removed, function(event)
   qmtt.handle_chart_tag_removal(event)
 end)
 
+--[[script.on_event(defines.events.on_chart_tag_added, function(event)
+  qmtt.handle_chart_tag_added(event)
+end)]]
+
+script.on_event(defines.events.on_chart_tag_modified, function(event)
+  qmtt.handle_chart_tag_modified(event)
+end)
+
+
+
+
+
+
 -- set events for hotkeys
 for i = 1, 10 do
   script.on_event(PREFIX .. "teleport-to-fave-" .. i, function(event)

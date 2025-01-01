@@ -35,20 +35,36 @@ function custom_input_event_handler.on_add_tag(event)
   end
 end
 
-function on_teleport(event)
-  if event and event.entity and event.entity.player then
+function custom_input_event_handler.on_teleport(event)
+  --[[
+  This would be a great place to restore existing view, but 
+  need to research more about preserving/copying previous
+  character state. 
+  "creating and replacing the player's character entity may 
+  have some side effects, such as resetting the player's 
+  equipment, inventory, or other character-related properties. 
+  Make sure to handle these cases appropriately in your mod."
+  ]]
+
+
+  --[[if event and event.entity and event.entity.player then
     local player = event.entity.player
     if player then
-    --[[player.surface.play_sound({m
+      --[[local chr = player.character
+      player.set_controller(
+        type = 
+      )
+      player.associate_character(chr)]]
+      --[[player.surface.play_sound({m
       path = "wct-qmtt-construction-robot",
       position = player.position,
       volume = 1.0
-    })]]
+    })
     end
-  end
+  end]]
 end
 
-function on_close_with_toggle_map(event)
+function custom_input_event_handler.on_close_with_toggle_map(event)
   local player = game.get_player(event.player_index)
   if ((player and player.render_mode ~= defines.render_mode.game) and (add_tag_GUI.is_open(player))) then
     add_tag_GUI.close(player)

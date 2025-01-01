@@ -96,7 +96,8 @@ function establish_working_qmtt(working_tag, player, is_favorite, display_text, 
 
     existing_q.idx = pos_idx
     existing_q.surface_id = player.surface_index
-    existing_q.position = working_tag.position
+    existing_q.position.x = working_tag.position.x
+    existing_q.position.y = working_tag.position.y
     existing_q.fave_displaytext = display_text
     existing_q.fave_description = description
 
@@ -176,6 +177,7 @@ end
 -- aka check if we are in a structure, teleport closest to the spot we have already selected
 function map_tag_utils.teleport_player_to_closest_position(player, target_position, search_radius)
   if player then
+    storage.qmtt.player_data[player.index].render_mode = player.render_mode
     local surface = player.surface
     local return_pos = nil
     local return_msg = "No valid teleport position found within the search radius. Please select another location."

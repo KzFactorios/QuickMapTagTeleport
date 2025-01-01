@@ -115,7 +115,8 @@ script.on_event(defines.events.on_chart_tag_modified, function(event)
                 wutils.find_element_by_key_and_value(storage.qmtt.ext_tags, "idx", old_pos)
             if stored_qmtt then
                 stored_qmtt.idx = wutils.format_idx_from_position(event.tag.position)
-                stored_qmtt.position = event.tag.position
+                stored_qmtt.position.x = event.tag.position.x
+                stored_qmtt.position.y = event.tag.position.y
             else
                 stored_qmtt = {
                     idx = wutils.format_idx_from_position(event.tag.position),
@@ -160,13 +161,76 @@ function qmtt.handle_chart_tag_removal(event)
     end
 end
 
+--- Handles when a tag is added from the stock editor
+--- Nothing to do, handled elsewhere in other flows
+--[[function qmtt.handle_chart_tag_added(event)
+    if game and event.player_index then
+        local player = game.players[event.player_index]
+        if player then
+            -- create a qmtt and an extended tag
+        end
+    end
+end]]
+
+function qmtt.handle_chart_tag_modified(event)
+    -- only handle stock editor changes - event.mod_name == nil
+    local mod = event.mod_name
+    -- modified pos by stock editor, mod_name == nil
+
+    if not mod and event.old_position ~= event.tag.position then
+        local old_pos = wutils.format_idx_from_position(event.old_position)
+        local new_pos = wutils.format_idx_from_position(event.tag.position)
+        local surface_id = event.tag.surface.index
+        local fav_bar_reset = false
+
+        -- find any faves (pos_idx)
+        for _, player in pairs(storage.qmtt.GUI.fav_bar.players) do
+            for _, fave in pairs(player.fave_places[surface_id]) do
+                if fave._pos_idx == old_pos then
+                    fave._pos_idx = new_pos
+                    fav_bar_reset = true
+                    break
+                end
+            end
+        end
+
+        -- find any qmtts (idx and position)
+        for _, ext in pairs(storage.qmtt.surfaces[surface_id].extended_tags) do
+            if ext.idx == old_pos then
+                ext.idx = new_pos
+                ext.position.x = event.tag.position.x
+                ext.position.y = event.tag.position.y
+                break
+            end
+        end
+
+        -- find any chart tags
+        for _, chart_tag in pairs(storage.qmtt.surfaces[surface_id].chart_tags) do
+            if wutils.format_idx_from_position(chart_tag.position) == old_pos then
+                chart_tag.position.x = event.tag.position.x
+                chart_tag.position.y = event.tag.position.y
+                break
+            end
+        end
+
+        -- reset any UIs, chart_tags?
+        if fav_bar_reset and game and event.player_index then
+            local player = game.players[event.player_index]
+            if player then
+                fav_bar_GUI.update_ui(player)
+            end
+        end
+    end
+end
+
 function qmtt.remove_chart_tag_at_position(player, pos)
     if player then
         local _chart_tags = storage.qmtt.surfaces[player.surface_index].chart_tags
         if _chart_tags and #_chart_tags > 0 then
             local idx = wutils.find_element_idx_by_position(_chart_tags, "position", pos)
             if idx and idx > 0 then
-                wutils.remove_element_at_index(_chart_tags, idx)
+                _chart_tags[idx] = nil
+                --wutils.remove_element_at_index(_chart_tags, idx)
             end
         end
     end
@@ -178,7 +242,8 @@ function qmtt.remove_ext_tag_at_position(player, pos)
         if _ext_tags and #_ext_tags > 0 then
             local idx = wutils.find_element_idx_by_position(_ext_tags, "position", pos)
             if idx and idx > 0 then
-                wutils.remove_element_at_index(_ext_tags, idx)
+                _ext_tags[idx] = nil
+                --wutils.remove_element_at_index(_ext_tags, idx)
             end
         end
     end
