@@ -117,7 +117,6 @@ local function initialize()
 
   for _, player in pairs(game.players) do
     if player then
-
       control.check_favorites_on_off_change(player)
       --reset_player_favorites(player)
 
@@ -246,11 +245,11 @@ function control.check_favorites_on_off_change(player)
   if player.mod_settings[PREFIX .. "favorites-on"].value and
       storage.qmtt.GUI.fav_bar.players[player.index] ~= nil and
       -- cache.get_player_favorites(player) -- don't use this as it will create a new empty faves collection
-      (storage.qmtt.GUI.fav_bar.players[player.index].faves == nil or
-      #storage.qmtt.GUI.fav_bar.players[player.index].faves == 0) -- count of surface indices
-      then
+      (storage.qmtt.GUI.fav_bar.players[player.index].fave_places == nil or
+        #storage.qmtt.GUI.fav_bar.players[player.index].fave_places == 0) -- count of surface indices
+  then
     cache.favorite_the_player_experience(player)
-  else
+  elseif not player.mod_settings[PREFIX .. "favorites-on"].value then
     cache.unfavorite_the_player_experience(player)
   end
 end

@@ -1,12 +1,11 @@
-local gui              = require("lib/gui")
-local wutils           = require("wct_utils")
-local mod_gui          = require("mod-gui")
-local constants        = require("settings/constants")
-local PREFIX           = constants.PREFIX
-local fave             = require("scripts/gui/fave")
-local add_tag_settings = require("settings/add_tag_settings")
+local gui           = require("lib/gui")
+local wutils        = require("wct_utils")
+local mod_gui       = require("mod-gui")
+local constants     = require("settings/constants")
+local PREFIX        = constants.PREFIX
+local fave          = require("scripts/gui/fave")
 
-local edit_fave_GUI    = {}
+local edit_fave_GUI = {}
 
 --template
 local function edit_fave_template(player, _fave)
@@ -23,7 +22,6 @@ local function edit_fave_template(player, _fave)
         local ct = fave.get_chart_tag(player, _fave)
         if ct then
             fave_text = ct.text or ""
-            --fave_text = wutils.limit_text(fave_text, 50)
             if ct.icon then
                 fave_sprite_path = wutils.format_sprite_path(ct.icon.type, ct.icon.name, false)
             end
@@ -91,7 +89,7 @@ local function edit_fave_template(player, _fave)
                                     sprite = "info",
                                     style = PREFIX .. "edit-fave-gui-info-image",
                                     tooltip =
-                                    "Click the arrow buttons to change the order of the favorite. Hotkey assignments will be updated automatically."
+                                    "Click the arrow buttons to change the order of the favorite. Hotkey assignments will be updated automatically. Note that the hotkeys swap so you may have to update more than one assignment."
                                 },
                                 {
                                     type = "label",
@@ -156,8 +154,6 @@ local function edit_fave_template(player, _fave)
                                 },
                             }
                         },
-
-
                     },
                 },
             }
@@ -170,7 +166,6 @@ function edit_fave_GUI.update_ui(player_index)
         local player = game.players[player_index]
         if player then
             local fave_pos = cache.get_player_selected_fave_pos_idx(player)
-            --local selected_fave = storage.qmtt.GUI.edit_fave.players[player.index].selected_fave
             if not storage.qmtt.GUI.edit_fave.players[player.index] then
                 storage.qmtt.GUI.edit_fave.players[player.index] = {
                     selected_fave = fave_pos,
@@ -306,11 +301,7 @@ edit_fave_GUI.handlers = {
                 on_gui_click = function(event)
                     -- if next space is empty
                     -- find next next open or non-locked space
-
                     -- if next space is occupied
-                    
-
-
                     --edit_fave_GUI.move(event)
                     edit_fave_GUI.swap(event)
                 end

@@ -1,12 +1,7 @@
---OK this is not a gui but it just seemed appropriate
--- to put here
-local wutils    = require("wct_utils")
+--OK this is not a gui but it just seemed appropriate to put here
 local table     = require("__flib__.table")
---local fave      = require("scripts/gui/fave")
+local wutils    = require("wct_utils")
 local cache     = require("lib/cache")
-local constants = require("settings/constants")
---local add_tag_GUI = require("scripts.gui.add_tag_GUI")
-
 local qmtt      = {}
 
 --[[

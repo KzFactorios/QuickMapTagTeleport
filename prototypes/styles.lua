@@ -49,7 +49,6 @@ gui_style["child_flow"] = {
 gui_style["fave_text_label"] = {
   type = "label_style",
   width = 250,
-  maximal_height = 80,
 }
 
 gui_style["fav_bar_gui"] = {
