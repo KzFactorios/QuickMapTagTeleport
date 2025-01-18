@@ -11,8 +11,10 @@ function custom_input_event_handler.on_add_tag(event)
   local player = game.get_player(event.player_index)
 
   if ((player and player.render_mode == defines.render_mode.chart) and (not add_tag_GUI.is_open(player))) then
-    local settings = add_tag_settings.getPlayerSettings(player)
-    local position = map_tag_utils.snap_position(event.cursor_position, settings.snap_scale)
+    --local settings = add_tag_settings.getPlayerSettings(player)
+
+    local SNAP_SCALE = 4
+    local position = map_tag_utils.snap_position(event.cursor_position, SNAP_SCALE)
     local position_can_be_tagged = map_tag_utils.position_can_be_tagged(position, player)
 
     -- TODO work on better snap_scale. I am either getting too far
@@ -20,9 +22,11 @@ function custom_input_event_handler.on_add_tag(event)
     -- I think the UX demands that if you light up the indicator,
     -- you should be getting what you are expecting. Also we are
     -- dealing with a square indicator and a round selector
+    -- see github versions prior to 1.2 for proper implementation
     if position_can_be_tagged then
       local position_has_colliding_tags =
           map_tag_utils.position_has_colliding_tags(position, 7.1, player)
+          
       if position_has_colliding_tags then
         -- we are editing, open a qmtt
         -- use the position of the colliding tag for all further calcs
@@ -76,6 +80,7 @@ function custom_input_event_handler.on_fave_order_updated(event)
     local player = game.players[event.player_index]
     if player then
       fav_bar_GUI.update_ui(player)
+      edit_fave_GUI.update_ui(player.index)
     end
   end
 end

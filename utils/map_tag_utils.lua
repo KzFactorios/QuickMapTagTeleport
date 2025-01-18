@@ -3,15 +3,13 @@ local math          = require("__flib__/math")
 local wutils        = require("wct_utils")
 local table         = require("__flib__/table")
 local fave          = require("scripts/gui/fave")
---local qmtt   = require("scripts/gui/qmtt")
+local next          = next
 
 local map_tag_utils = {}
 
-local next          = next
-
 -- note that we should have already updated tags and qmtts (displaytext/description)
 -- we are just making sure objects are correctly assigned to faves
-function curate_player_fave_places(is_favorite, player, pos_idx)
+function map_tag_utils.curate_player_fave_places(is_favorite, player, pos_idx)
   if player then
     -- get all the potential pieces/parts
     local player_index = player.index
@@ -27,11 +25,11 @@ function curate_player_fave_places(is_favorite, player, pos_idx)
       if not existing_fave then
         local new_index = fave.get_next_open_fave_places_index(player)
         if new_index ~= -1 then
-          existing_fave = fave.create_fave(pos_idx, player.surface_index)
+          existing_fave = fave.create_fave(pos_idx, player.surface_index, false)
           fave_places[new_index] = existing_fave
         else
           -- TODO put max faves in a setting
-          game.print("You already have max number of faves")
+          game.print("You have reached the max number of allowable favorites")
           return
         end
       end
@@ -51,7 +49,7 @@ function curate_player_fave_places(is_favorite, player, pos_idx)
 end
 
 --- find the existing chart tag or create a new one to work with based on input tag
-function establish_working_tag(input_tag, player)
+function wutils.establish_working_tag(input_tag, player)
   if player then
     local current_pool = player.force.find_chart_tags(player.surface)
     local existing_tag = wutils.find_element_by_position(current_pool, "position", input_tag.position)
@@ -74,7 +72,7 @@ function establish_working_tag(input_tag, player)
 end
 
 --- Adds or updates a qmtt based on the working chart tag. Updates the faved_by_players list
-function establish_working_qmtt(working_tag, player, is_favorite, display_text, description)
+function wutils.establish_working_qmtt(working_tag, player, is_favorite, display_text, description)
   if player and working_tag then
     local player_index = player.index
     local pos_idx = wutils.format_idx_from_position(working_tag.position)
@@ -128,11 +126,11 @@ function map_tag_utils.save_tag(player, position, text, icon, display_text, desc
       input_tag.icon = icon
     end
 
-    local working_tag = establish_working_tag(input_tag, player)
-    establish_working_qmtt(working_tag, player, favorite, display_text, description)
+    local working_tag = wutils.establish_working_tag(input_tag, player)
+    wutils.establish_working_qmtt(working_tag, player, favorite, display_text, description)
 
     -- Deal with faves, note that we have already updated tags and qmtts
-    curate_player_fave_places(favorite, player, wutils.format_idx_from_position(position))
+    map_tag_utils.curate_player_fave_places(favorite, player, wutils.format_idx_from_position(position))
 
     cache.reset_surface_chart_tags(player)
   end

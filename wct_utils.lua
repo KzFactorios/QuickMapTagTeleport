@@ -1,14 +1,51 @@
 local wutils = {}
 local next = next
 
+--- finds the next empty element to the left in the given table
+--- returns nil if no empty element found
+--- start from given index or last index if not provided
+function wutils.find_next_empty_left_index(tbl, start)
+    local idx = start or #tbl
+
+    while idx > 0 do
+        if next(tbl[idx]) == nil then
+            return idx
+        end
+        idx = idx - 1
+    end
+
+    return nil
+end
+
+--- finds the next empty element to the right in the given table
+--- returns nil if no empty element found
+--- start from given index or 0 if not provided
+function wutils.find_next_empty_right_index(tbl, start)
+    local idx = start or 0
+    local end_tbl = #tbl
+    idx = idx + 1
+
+    while idx <= end_tbl do
+        if next(tbl[idx]) == nil then
+            return idx
+        end
+        idx = idx + 1
+    end
+
+    return nil
+end
+
+--- Given a position structure { x: ###, y: ### } or { y: ###, x: ### }, return xxx.yyy
 function wutils.format_idx_from_position(position)
     return wutils.format_idx_from_position_x_y(position.x, position.y)
 end
 
+--- Given coords x, y return xxx.yyy
 function wutils.format_idx_from_position_x_y(x, y)
     return string.format("%s.%s", tostring(math.floor(x)), tostring(math.floor(y)))
 end
 
+--- Given a pos_idx string xxx.yyy, return x: ###, y: ###
 function wutils.format_idx_string_from_pos_idx(pos_idx)
     if not pos_idx or pos_idx == "" then return "" end
     local pos = wutils.decode_position_from_pos_idx(pos_idx)
@@ -36,7 +73,7 @@ function wutils.decode_position_from_pos_idx(pos_idx)
     return position
 end
 
-function splitPosOnDot(input)
+function wutils.splitPosOnDot(input)
     local x, y = input:match("([^%.]+)%.([^%.]+)")
     return x, y
 end
@@ -53,7 +90,7 @@ end
 -- TODO make this pretty!!! Learn more about Lua!
 function wutils.find_element_by_position(tbl, key, pos)
     for _, element in pairs(tbl) do
-        if element ~= {} and element[key] ~= nil then
+        if element and element ~= {} and element.valid and element[key] ~= nil then
             if element[key].x ~= nil and element[key].y ~= nil and pos and
                 (tostring(element[key]["x"]) == pos.x and tostring(element[key]["y"]) == pos.y) or
                 (tostring(element[key].x) == pos.x and tostring(element[key].y) == pos.y) or
@@ -91,7 +128,7 @@ function wutils.find_element_by_key(tbl, key)
     return nil
 end
 
-wutils.tableContainsKey = function(t, key)
+function wutils.tableContainsKey(t, key)
     for k, v in pairs(t) do
         if k == key or v == key then
             return true
@@ -136,7 +173,7 @@ end
 -- Careful how you use this one
 -- It was created for a use-case where most of the text
 -- is matched from the start
-wutils.tableContainsLikeKey = function(t, key)
+function wutils.tableContainsLikeKey(t, key)
     -- Validate inputs
     if type(t) ~= "table" or type(key) ~= "string" then
         error("Invalid arguments: expected (table, string)")
@@ -177,14 +214,14 @@ function wutils.get_elements_starts_with_key(t, key)
     return results
 end
 
-wutils.tableFindByName = function(t, name)
+function wutils.tableFindByName(t, name)
     for i = 1, #t do
         if t[i].name == name then return t[i] end
     end
     return nil
 end
 
-function hex_to_rgb(hex)
+function wutils.hex_to_rgb(hex)
     -- Remove # if present
     hex = hex:gsub("#", "")
 
@@ -198,7 +235,7 @@ end
 
 -- helper function to get gui elements
 -- ex: local gui_element = find_gui_element_by_name(player.gui.screen, "gui-tag-edit")
-wutils.find_gui_element_by_name = function(parent, name)
+function wutils.find_gui_element_by_name(parent, name)
     for k, child in ipairs(parent.children) do
         if child.name == name then
             return child
@@ -244,7 +281,14 @@ function wutils.get_element_index(t, key, value)
     return -1
 end
 
+function wutils.limit_text(inp, limit)
+    if string.len(inp) < limit then return inp end
+
+    return string.sub(inp, 1, limit) .. "..."
+end
+
 function wutils.format_sprite_path(type, name, is_signal)
+    -- TODO what to do if type is signal?
     if not name then name = "" end
     if not type then type = "" end
 
@@ -268,9 +312,6 @@ end
 function wutils.starts_with(haystack, needle)
     return haystack:sub(1, #needle) == needle
 end
-
-return wutils
-
 
 --[[
 function string:contains(sub)
@@ -308,3 +349,39 @@ function string:insert(pos, text)
     return self:sub(1, pos - 1) .. text .. self:sub(pos)
 end
 ]]
+
+-- http://lua-users.org/wiki/StringTrim
+
+--function trim12(s)
+function wutils.trim(s)
+    local from = s:match"^%s*()"
+    return from > #s and "" or s:match(".*%S", from)
+end
+
+-- http://lua-users.org/wiki/SplitJoin
+
+-- Compatibility: Lua-5.1
+function wutils.split(str, pat)
+    local t = {} -- NOTE: use {n = 0} in Lua-5.0
+    local fpat = "(.-)" .. pat
+    local last_end = 1
+    local s, e, cap = str:find(fpat, 1)
+    while s do
+        if s ~= 1 or cap ~= "" then
+            table.insert(t, cap)
+        end
+        last_end = e + 1
+        s, e, cap = str:find(fpat, last_end)
+    end
+    if last_end <= #str then
+        cap = str:sub(last_end)
+        table.insert(t, cap)
+    end
+    return t
+end
+
+function wutils.split_path(str)
+    return wutils.split(str, '[\\/]+')
+end
+
+return wutils

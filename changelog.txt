@@ -42,18 +42,32 @@ Date: 2024-12-27
 
   Changes:
     - Added the concept of favorites to the mod
-    - There is now a favorites bar at the top to hold up to 10 favorite locations
+    - There is now a favorites bar at the top to hold up to 10 favorite locations per surface
     - Those locations correspond to ctrl-# activated hotkey
     - Click on the heart to open/close the favorites bar
     - To change location of the hotkey, right-click on the favorite and use the arrows to move it
-    - To move or delete a location, use the stock editor (left-click)
-    - When a location is edited from the stock editor, those changes are reflected in the favorites
+    - Yes, in this mod, right-clicking is often your friend :)
+    - To move or delete a location, use the stock editor.
+    - When a location is edited or deleted from the stock editor, those changes are reflected in the favorites
     - Fixed bug when trying to update position on tag update from stock editor
 
   TODO:
-    - code cleanup
-    - Edit favorite should allow favorite checkbox and delete capability (move?)
-    - Moving a fave (on fav_bar) should have two modes: 1) keep position and 2) (current) move to next open spot
-    - On teleport, remain in chart view (toggle). Make this a preference setting ** more research needed - side effects
-    - Raise events for Modified, Added, Deleted to mod events
-    - When a location is deleted from the stock editor, those changes are reflected in the favorites
+    - Edit favorite should allow edit of favorite, icon and delete. (move?)
+    - On teleport, remain in chart view (toggle) ** more research needed - side effects
+    - Raise events for Modified, Added, and Deleted to mod events
+    - Guis should handle ESC key hits properly
+---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2025-01-18
+
+  Changes:
+    - Where to begin?
+    - Added Favorites to the mix
+    - If you don't want to use favorites, you have the ability to turn them off in the mod settings
+    - Removed mod settings that weren't currently being used. I may bring some back
+    - Addressed some multiplayer concerns. I am sure there are more and will focus on them for next release
+
+  TODO:
+    - multiplayer, multiplayer, multiplayer. 
+    - code refactoring
+    - locale

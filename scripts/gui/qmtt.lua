@@ -2,10 +2,9 @@
 -- to put here
 local wutils    = require("wct_utils")
 local table     = require("__flib__.table")
-local fave      = require("scripts/gui/fave")
+--local fave      = require("scripts/gui/fave")
 local cache     = require("lib/cache")
 local constants = require("settings/constants")
---local control = require("control")
 --local add_tag_GUI = require("scripts.gui.add_tag_GUI")
 
 local qmtt      = {}
@@ -139,24 +138,7 @@ function qmtt.handle_chart_tag_removal(event)
     if game and event.player_index then
         local player = game.players[event.player_index]
         if player then
-            local pos_idx = wutils.format_idx_from_position(event.tag.position)
-
-            qmtt.remove_chart_tag_at_position(player, event.tag.position)
-            qmtt.remove_ext_tag_at_position(player, event.tag.position)
-            local sel_fave_changed = qmtt.clear_matching_selected_fave(pos_idx)
-            qmtt.clear_matching_fave_places(player, pos_idx)
-
-            -- reset cache and update the fave bar
-            qmtt.reset_chart_tags(player.surface_index)
-            fav_bar_GUI.update_ui(player)
-
-            if sel_fave_changed then
-                script.raise_event(constants.events.SELECTED_FAVE_CHANGED, {
-                    player_index = player.index,
-                    fave_index = cache.get_player_selected_fave_idx(player),
-                    selected_fave = cache.get_player_selected_favorite(player),
-                })
-            end
+            control.remove_tag_at_position(player, event.tag.position)
         end
     end
 end
@@ -230,7 +212,6 @@ function qmtt.remove_chart_tag_at_position(player, pos)
             local idx = wutils.find_element_idx_by_position(_chart_tags, "position", pos)
             if idx and idx > 0 then
                 _chart_tags[idx] = nil
-                --wutils.remove_element_at_index(_chart_tags, idx)
             end
         end
     end
@@ -243,7 +224,6 @@ function qmtt.remove_ext_tag_at_position(player, pos)
             local idx = wutils.find_element_idx_by_position(_ext_tags, "position", pos)
             if idx and idx > 0 then
                 _ext_tags[idx] = nil
-                --wutils.remove_element_at_index(_ext_tags, idx)
             end
         end
     end

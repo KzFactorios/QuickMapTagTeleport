@@ -1,18 +1,34 @@
-local gui           = require("lib/gui")
-local wutils        = require("wct_utils")
-local mod_gui       = require("mod-gui")
-local constants     = require("settings/constants")
-local PREFIX        = constants.PREFIX
-local fave          = require("scripts/gui/fave")
+local gui              = require("lib/gui")
+local wutils           = require("wct_utils")
+local mod_gui          = require("mod-gui")
+local constants        = require("settings/constants")
+local PREFIX           = constants.PREFIX
+local fave             = require("scripts/gui/fave")
+local add_tag_settings = require("settings/add_tag_settings")
 
-local edit_fave_GUI = {}
+local edit_fave_GUI    = {}
 
 --template
-local function add_edit_fave_template(player, _fave)
+local function edit_fave_template(player, _fave)
     -- do any setup here
     if player then
         local position_string = wutils.format_idx_string_from_pos_idx(_fave._pos_idx)
         if not position_string then position_string = "" end
+
+        local hotkey = cache.get_player_selected_fave_idx(player)
+        if hotkey == 10 then hotkey = 0 end
+
+        local fave_text = ""
+        local fave_sprite_path = ""
+        local ct = fave.get_chart_tag(player, _fave)
+        if ct then
+            fave_text = ct.text or ""
+            --fave_text = wutils.limit_text(fave_text, 50)
+            if ct.icon then
+                fave_sprite_path = wutils.format_sprite_path(ct.icon.type, ct.icon.name, false)
+            end
+        end
+
         return
         {
             name = "edit-fave-gui",
@@ -80,42 +96,70 @@ local function add_edit_fave_template(player, _fave)
                                 {
                                     type = "label",
                                     style = "label",
-                                    caption = { "edit-fave-gui.position" }
+                                    caption = { "edit-fave-gui.hotkey", ": " }
+                                },
+                                {
+                                    type = "label",
+                                    style = "label",
+                                    caption = hotkey
+                                },
+                            },
+                        },
+                        {
+                            type = "flow",
+                            name = "info-flow-pos",
+                            style = "frame_header_flow",
+                            direction = "horizontal",
+                            children = {
+                                {
+                                    type = "label",
+                                    style = "label",
+                                    caption = { "edit-fave-gui.position", ": " }
                                 },
                                 {
                                     type = "label",
                                     style = "label",
                                     caption = position_string
                                 },
-                            },
+                            }
                         },
+                        {
+                            type = "flow",
+                            name = "info-flow-txt",
+                            style = "frame_header_flow",
+                            direction = "horizontal",
+                            children = {
+                                {
+                                    type = "label",
+                                    style = "label",
+                                    caption = { "edit-fave-gui.text", ": " }
+                                },
+                                {
+                                    type = "label",
+                                    style = "fave_text_label",
+                                    caption = fave_text
+                                },
+                            }
+                        },
+                        {
+                            type = "flow",
+                            name = "info-flow-sprite",
+                            style = "frame_header_flow",
+                            direction = "horizontal",
+                            children = {
+                                {
+                                    type = "sprite-button",
+                                    name = "buttons.icon",
+                                    --style = "fave_icon_button",
+                                    sprite = fave_sprite_path,
+                                    -- mouse_button_filter={"left"}
+                                },
+                            }
+                        },
+
+
                     },
                 },
-                {
-                    type = "frame",
-                    direction = "horizontal",
-                    style = "inside_shallow_frame_with_padding",
-                    children = {
-                        {
-                            type = "choose-elem-button",
-                            visible = false,
-                            name = "elem-icon",
-                            save_as = "fields.icon",
-                            style = "fav_bar_slot_button_in_shallow_frame",
-                            elem_type = "signal",
-                            signal = fave.format_sprite_path_from_favorite(player, _fave, true),
-                            handlers = "add_tag.fields.icon"
-
-                            --[[type = "sprite-button",
-                            save_as = "fields.icon",
-                            style = "slot_button_in_shallow_frame",
-                            elem_type = "signal",
-                            --signal = fave._chart_tag.icon,
-                            sprite = fave.format_sprite_path_from_favorite(player, _fave, false), -- sprite_path
-                            --handlers = "add_tag.fields.icon"]]
-                        },
-                    }
-                }
             }
         }
     end
@@ -143,9 +187,12 @@ function edit_fave_GUI.update_ui(player_index)
             local screen = player.gui.screen
             local sel_fave = cache.get_player_favorite_by_pos_idx(player, fave_pos)
             local elements =
-                gui.build(screen, { add_edit_fave_template(player, sel_fave) })
+                gui.build(screen, { edit_fave_template(player, sel_fave) })
 
             elements.root_frame.force_auto_center()
+
+            -- Allow the GUI to intercept ESC key presses
+            --elements.root_frame.ignored_by_interaction = false
         end
     end
 end
@@ -164,8 +211,8 @@ function edit_fave_GUI.is_open(player)
 end
 
 function edit_fave_GUI.open(player)
-    if player and edit_fave_GUI.is_open(player) then
-        --player.gui.screen
+    if player then
+        control.close_guis(player)
         edit_fave_GUI.update_ui(player.index)
     end
 end
@@ -231,11 +278,18 @@ edit_fave_GUI.handlers = {
             on_gui_closed = function(event)
                 -- gui should be closed at this point
                 -- do any cleanup
+                local stub = ""
             end
         },
         fields = {
             icon = {
-                --on_gui_elem_changed = on_fields_values_changed
+                on_gui_elem_changed = function(event)
+                    if game then
+                        local player = game.players[event.player_index]
+                        if player then
+                        end
+                    end
+                end
             }
         },
         buttons = {
@@ -250,12 +304,21 @@ edit_fave_GUI.handlers = {
             },
             left = {
                 on_gui_click = function(event)
-                    swap(event)
+                    -- if next space is empty
+                    -- find next next open or non-locked space
+
+                    -- if next space is occupied
+                    
+
+
+                    --edit_fave_GUI.move(event)
+                    edit_fave_GUI.swap(event)
                 end
             },
             right = {
                 on_gui_click = function(event)
-                    swap(event)
+                    --edit_fave_GUI.move(event)
+                    edit_fave_GUI.swap(event)
                 end
             },
             confirm = {
@@ -264,7 +327,37 @@ edit_fave_GUI.handlers = {
     }
 }
 
-function swap(event)
+function edit_fave_GUI.move(event)
+    local player = game.get_player(event.player_index)
+    if player then
+        local all_faves = cache.get_player_favorites(player)
+        if all_faves then
+            local sel_fave = cache.get_player_selected_favorite(player)
+            local sel_idx = cache.get_player_selected_fave_idx(player)
+            local new_idx = nil
+
+            if event.element.name == "buttons.left" then
+                new_idx = wutils.find_next_empty_left_index(all_faves, sel_idx)
+            else
+                new_idx = wutils.find_next_empty_right_index(all_faves, sel_idx)
+            end
+
+            if new_idx ~= nil then
+                -- local tmp = all_faves[sel_idx]
+                all_faves[new_idx] = sel_fave
+                all_faves[sel_idx] = {}
+
+                script.raise_event(constants.events.FAVE_ORDER_UPDATED, {
+                    player_index = event.player_index,
+                    old_index = sel_idx,
+                    new_index = new_idx
+                })
+            end
+        end
+    end
+end
+
+function edit_fave_GUI.swap(event)
     local player = game.get_player(event.player_index)
     if player then
         local all_faves = cache.get_player_favorites(player)
@@ -305,18 +398,3 @@ script.on_event(defines.events.on_gui_click, function(event)
 end)
 
 return edit_fave_GUI
-
-
-
---[[
-For dealing with scaling
-local scale = player.display_scale
-local chart_view_x = 0
-local chart_view_y = 0
-if player.render_mode ~= defines.render_mode.game then
-    chart_view_x = 14 * scale
-    chart_view_y = 48 * scale
-end
-local offset = (fave_index - 1) * (43 * scale)
-screen["edit-fave-gui"].location = { x = chart_view_x + (160 * scale) + offset, y = chart_view_y + (57 * scale) }
-]]

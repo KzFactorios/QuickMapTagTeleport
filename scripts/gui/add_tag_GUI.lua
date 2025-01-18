@@ -1,5 +1,4 @@
 local gui              = require("lib/gui")
---local mod_gui          = require("mod-gui")
 local add_tag_settings = require("settings/add_tag_settings")
 local map_tag_utils    = require("utils/map_tag_utils")
 local wutils           = require("wct_utils")
@@ -8,7 +7,53 @@ local cache            = require("lib/cache")
 local constants        = require("settings/constants")
 local PREFIX           = constants.PREFIX
 
-local function add_tag_frame_template(formatted_position, text, icon, _qmtt, element_favorite)
+local function add_tag_frame_template(player, formatted_position, text, icon, _qmtt, element_favorite)
+  local container_elements = {}
+
+  table.insert(container_elements, { type = "label", style = "label", caption = { "gui-tag-edit.teleport" } })
+  table.insert(container_elements, {
+    type = "button",
+    name = "button-teleport",
+    save_as = "buttons.teleport",
+    style = PREFIX .. "red_confirm_button",
+    caption = formatted_position,
+    handlers = "add_tag.buttons.teleport"
+  })
+
+  table.insert(container_elements, { type = "label", style = "label", caption = "Name" })
+  table.insert(container_elements, {
+    type = "text-box",
+    name = "text-name",
+    save_as = "fields.text",
+    text = text,
+    style = PREFIX .. "add_tag_textfield",
+    clear_and_focus_on_right_click = true,
+    handlers = "add_tag.fields.text"
+  })
+
+  if player.mod_settings[PREFIX .. "favorites-on"].value then
+    table.insert(container_elements, { type = "label", caption = "Favorite" })
+    table.insert(container_elements, {
+      type = "checkbox",
+      name = "checkbox-favorite",
+      save_as = "fields.favorite",
+      state = element_favorite,
+      --handlers = "add_tag.fields.favorite"
+    })
+  end
+
+  table.insert(container_elements, {
+    type = "choose-elem-button",
+    name = "elem-icon",
+    save_as = "fields.icon",
+    style = "fav_bar_slot_button_in_shallow_frame",
+    elem_type = "signal",
+    signal = icon,
+    --mouse_button_filter={"left"},
+    handlers = "add_tag.fields.icon"
+  })
+
+
   return
   {
     name = "gui-tag-edit",
@@ -18,7 +63,8 @@ local function add_tag_frame_template(formatted_position, text, icon, _qmtt, ele
     handlers = "add_tag.root_frame",
     children = {
 
-      {        type = "frame",
+      {
+        type = "frame",
         name = "header-row",
         style = "header_frame",
         direction = "horizontal",
@@ -37,58 +83,18 @@ local function add_tag_frame_template(formatted_position, text, icon, _qmtt, ele
       },
 
 
-      {        type = "frame",
+      {
+        type = "frame",
         name = "table-container",
         style = "inside_shallow_frame_with_padding",
         direction = "vertical",
         children = {
           {
             type = "table",
-            name="table-proper",
+            name = "table-proper",
             column_count = 2,
             style = PREFIX .. "add_tag_table",
-            children = {
-              { type = "label", style = "label",          caption = { "gui-tag-edit.teleport" } },
-              {
-                type = "button",
-                name = "button-teleport",
-                save_as = "buttons.teleport",
-                style = PREFIX .. "red_confirm_button",
-                caption = formatted_position,
-                handlers = "add_tag.buttons.teleport"
-              },
-
-              { type = "label", style = "label",          caption = "Name" },
-              {
-                type = "text-box",
-                name = "text-name",
-                save_as = "fields.text",
-                text = text,
-                style = PREFIX .. "add_tag_textfield",
-                clear_and_focus_on_right_click = true,
-                handlers = "add_tag.fields.text"
-              },
-
-              { type = "label", caption = "Favorite" },
-              {
-                type = "checkbox",
-                name = "checkbox-favorite",
-                save_as = "fields.favorite",
-                state = element_favorite,
-                --handlers = "add_tag.fields.favorite"
-              },
-
-              {
-                type = "choose-elem-button",
-                name = "elem-icon",
-                save_as = "fields.icon",
-                style = "fav_bar_slot_button_in_shallow_frame",
-                elem_type = "signal",
-                signal = icon,
-                handlers = "add_tag.fields.icon"
-              },
-
-            },
+            children = container_elements
           },
         },
       },
@@ -192,12 +198,9 @@ end
 
 function add_tag_GUI.open(player, position_to_open_from)
   local position = position_to_open_from
-  --local tagedit = mod_gui.get_frame_flow(player)["AddTag"]
 
   if player and position then
-    if add_tag_GUI.is_open(player) then
-      add_tag_GUI.close(player)
-    end
+    control.close_guis(player)
 
     local settings = add_tag_settings.getPlayerSettings(player)
     local posTxt = add_tag_GUI.format_position_text(position)
@@ -208,8 +211,8 @@ function add_tag_GUI.open(player, position_to_open_from)
 
     local _qmtt = cache.get_matching_qmtt_by_position(player.surface_index, position)
 
-    local new_tag_text = settings.new_tag_tex
-    local new_tag_icon = settings.new_tag_icon
+    local new_tag_text = ""
+    local new_tag_icon = { type = "virtual", name = "" }
 
     if _qmtt == nil and _tag ~= nil then
       _qmtt = {
@@ -236,22 +239,22 @@ function add_tag_GUI.open(player, position_to_open_from)
 
     local element_favorite = cache.extended_tag_is_player_favorite(_qmtt, player.index)
     local elements = gui.build(player.gui.screen,
-      { add_tag_frame_template(posTxt, new_tag_text, new_tag_icon, _qmtt, element_favorite) })
+      { add_tag_frame_template(player, posTxt, new_tag_text, new_tag_icon, _qmtt, element_favorite) })
 
     elements.root_frame.force_auto_center()
     elements.fields.text.focus()
+
     elements.buttons.draggable_space_header.drag_target = elements.root_frame
     elements.buttons.draggable_space_footer.drag_target = elements.root_frame
+
     storage.qmtt.GUI.AddTag.players[player.index].position.x = position.x
     storage.qmtt.GUI.AddTag.players[player.index].position.y = position.y
   end
 end
 
 function add_tag_GUI.close(player)
-  if player then
-    if add_tag_GUI.is_open(player) then
-      player.gui.screen["gui-tag-edit"].destroy()
-    end
+  if player and add_tag_GUI.is_open(player) then
+    player.gui.screen["gui-tag-edit"].destroy()
   end
 end
 
@@ -265,7 +268,8 @@ function add_tag_GUI.get_text(player)
   if player then
     if add_tag_GUI.is_open(player) then
       -- PREFIX .. "add_tag_table"
-      return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["text-name"].text
+      local _txt = player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["text-name"].text
+      return wutils.limit_text(_txt, 256)
     end
   end
   return ""
@@ -291,7 +295,7 @@ end]]
 
 function add_tag_GUI.get_favorite(player)
   if player then
-    if add_tag_GUI.is_open(player) then
+    if add_tag_GUI.is_open(player) and player.mod_settings[PREFIX .. "favorites-on"].value then
       return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["checkbox-favorite"].state
     end
   end
@@ -308,6 +312,7 @@ function add_tag_GUI.get_icon(player)
 end
 
 local function on_fields_values_changed(event)
+  -- check for button pressed
   local player = game.get_player(event.player_index)
   if player and add_tag_GUI.is_open(player) then
     local text = add_tag_GUI.get_text(player)
@@ -323,6 +328,7 @@ add_tag_GUI.handlers = {
       on_gui_closed = function(event)
         -- gui should be closed
         -- do any other cleanup
+        local stub = ""
       end
     },
     fields = {
@@ -363,12 +369,12 @@ add_tag_GUI.handlers = {
               add_tag_GUI.get_position(player.index),
               add_tag_GUI.get_text(player),
               add_tag_GUI.get_icon(player),
-              "",--add_tag_GUI.get_displaytext(player),
-              "",--add_tag_GUI.get_description(player),
+              "", --add_tag_GUI.get_displaytext(player),
+              "", --add_tag_GUI.get_description(player),
               add_tag_GUI.get_favorite(player)
             )
             add_tag_GUI.close(player)
-            control.update_uis(player)
+            control.update_uis(player) -- this is just fav_bar update
           end
         end
       },
@@ -383,6 +389,7 @@ add_tag_GUI.handlers = {
             local radius = 10
 
             local tele_pos, msg = map_tag_utils.teleport_player_to_closest_position(player, target_position, radius)
+
             if tele_pos then
               game.print(string.format("%s teleported to x: %d, y: %d", player.name, tele_pos.x, tele_pos.y))
               add_tag_GUI.close(player)
@@ -407,20 +414,3 @@ add_tag_GUI.handlers = {
 }
 
 return add_tag_GUI
-
-
---[[
-
-
-function add_tag_GUI.ensure_structure(player)
-  if not storage.qmtt.GUI then storage.qmtt.GUI = {} end
-  if not storage.qmtt.GUI.AddTag then storage.qmtt.GUI.AddTag = {} end
-  if not storage.qmtt.GUI.AddTag.players then storage.qmtt.GUI.AddTag.players = {} end
-  if not storage.qmtt.GUI.AddTag.players[player.index] then
-    storage.qmtt.GUI.AddTag.players[player.index] = {}
-  end
-end
-
-
-
-]]

@@ -18,16 +18,6 @@ data:extend {
     key_sequence = "",
     linked_game_control = "toggle-map"
   },
-  --[[{
-    name = constants.events.FAVE_ORDER_UPDATED,
-    type = "custom-input",
-    key_sequence = "mouse-button-1",
-  },
-  {
-    name = constants.events.SELECTED_FAVE_CHANGED,
-    type = "custom-input",
-    key_sequence = "mouse-button-1",
-  },]]
   {
     type = "custom-input",
     name = PREFIX .. "teleport-to-fave-1",
@@ -89,3 +79,22 @@ data:extend {
     consuming = "game-only"
   },
 }
+
+
+--[[
+Need to create a more robust system for handling ESC key
+{
+  type = "custom-input",
+  name = "gui-handle-escape-key",
+  key_sequence = "ESCAPE",
+  consuming = "none",
+},]]
+
+--[[script.on_event("gui-handle-escape-key", function(event)
+  ---@diagnostic disable-next-line: undefined-field
+  local player = game.get_player(event.player_index)
+  if not player then return end
+
+  edit_fave_GUI.close(player)
+  add_tag_GUI.close(player)
+end)]]

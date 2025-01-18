@@ -1,20 +1,14 @@
-local gui                        = require("lib/gui")
-local cache                      = require("lib/cache")
-local migration                  = require("__flib__.migration")
-local wutils                     = require("wct_utils")
-local map_tag_utils              = require("utils/map_tag_utils")
-local fave                       = require("scripts/gui/fave")
-local table                      = require("__flib__.table")
---local serpent = require("serpent")
-
-local mod_version_migrations     = require("migrations/mod_version_migrations")
 local custom_input_event_handler = require("scripts/event_handlers/custom_input_event_handler")
+local edit_fave_GUI              = require("scripts/gui/edit_fave_GUI")
 local add_tag_GUI                = require("scripts/gui/add_tag_GUI")
 local fav_bar_GUI                = require("scripts/gui/fav_bar_GUI")
-local edit_fave_GUI              = require("scripts/gui/edit_fave_GUI")
-local qmtt                       = require("scripts/gui/qmtt")
-
+local map_tag_utils              = require("utils/map_tag_utils")
 local constants                  = require("settings/constants")
+local qmtt                       = require("scripts/gui/qmtt")
+local wutils                     = require("wct_utils")
+local cache                      = require("lib/cache")
+local commands                   = require("commands")
+local gui                        = require("lib/gui")
 local PREFIX                     = constants.PREFIX
 local next                       = next
 
@@ -33,20 +27,27 @@ script.on_event(defines.events.on_player_created, function(event)
 end)
 
 script.on_configuration_changed(function(event)
-  -- TODO remove from any indexed storage
   if event.mod_changes and event.mod_changes["QuickMapTagTeleport"] then
     local changes = event.mod_changes["QuickMapTagTeleport"]
+
+    -- this condition indicates the mod was removed
     if changes.old_version and not changes.new_version then
       -- cleanup gui for all players
-       if game then
-        for _, player in (game.players) do
+      if game then
+        for _, player in pairs(game.players) do
           add_tag_GUI.on_player_removed(player.index)
+          edit_fave_GUI.on_player_removed(player.index)
           fav_bar_GUI.on_player_removed(player.index)
         end
-       end
+      end
       -- Mod is being removed, clean up data
-      -- This will kill ALL qmtt data
       storage.qmtt = nil
+    else
+      if game then
+        for _, player in pairs(game.players) do
+          cache.init_player(player)
+        end
+      end
     end
   end
 end)
@@ -68,55 +69,35 @@ script.on_event(defines.events.on_player_removed, function(event)
 end)
 
 
--- NOTHING IS HITTING THIS!!!!
+-- NOTHING IS CURRENTLY HITTING THESE STUBS
 script.on_event(defines.events.on_gui_click, function(event)
-  if event.element and event.element.name == "save_tag" then
-    local player = game.get_player(event.player_index)
-    if player then
-      local frame = player.gui.screen["custom-tag-editor"]
-
-      if frame then
-        local new_text = frame["tag_text"].text
-        player.print("Saving tag with text: " .. new_text)
-        frame.destroy()
-      end
-    end
-  end
+  local stub = ""
 end)
 
+-- stock editor does not hit this
+script.on_event(defines.events.on_gui_opened, function(event)
+  local stub = event.gui_type
+end)
+-- stock editor does not hit this
 script.on_event(defines.events.on_gui_closed, function(event)
   local stub = "stub"
 end)
 
--- TBD
+
 script.on_event(defines.events.script_raised_teleported, custom_input_event_handler.on_teleport)
 script.on_event(constants.events.CLOSE_WITH_TOGGLE_MAP, custom_input_event_handler.on_close_with_toggle_map)
-
---local _maptag_editor_open = script.generate_event_name()
---add_tag_GUI._maptag_editor_open = _maptag_editor_open
---script.on_event(_maptag_editor_open, custom_input_event_handler.on_maptag_editor_open)
-
 script.on_event(constants.events.ADD_TAG_INPUT, custom_input_event_handler.on_add_tag)
---script.on_event(constants.events.ED_EX_INPUT, custom_input_event_handler.on_ed_ex_input)
 
 script.on_event(defines.events.on_player_controller_changed, function(event)
   if game then
     local player = game.players[event.player_index]
     if player then
-      -- edit_fave_GUI.is_open(player)
-      --[[local sel_fave = cache.get_player_selected_fave(player)
-      if sel_fave ~= '' then
-        if sel_fave then
-          edit_fave_GUI.update_ui(event.player_index)
-        end
-      end]]
-
       if player.render_mode ~= defines.render_mode.chart and
           storage.qmtt.GUI.AddTag.players[event.player_index] and
           #storage.qmtt.GUI.AddTag.players[event.player_index] > 0
       then
-        storage.qmtt.GUI.AddTag.players[event.player_index].close()
-        storage.qmtt.GUI.AddTag.players[event.player_index].elements = nil
+        control.close_guis(player)
+        --storage.qmtt.GUI.AddTag.players[event.player_index].close()
       end
     end
   end
@@ -129,37 +110,16 @@ script.on_event(defines.events.on_player_changed_force, function(event)
   end
 end)
 
-local function reset_player_favorites(player)
-  if player then
-    local places = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.surface_index]
-    for i = 1, #places do
-      places[i] = {}
-    end
-
-    local extended = storage.qmtt.surfaces[player.surface_index].extended_tags
-    for i = 1, #extended do
-      extended[i].faved_by_players = {}
-    end
-
-    cache.set_player_selected_fave(player, "")
-  end
-end
-
 local __initialized = false
 local function initialize()
   -- Perform initialization tasks here
-  cache.init()
+  --cache.init()
 
   for _, player in pairs(game.players) do
     if player then
-      --reset_player_favorites(player)
 
-      -- by destrying and updating, this should push faves to the end of the top bar?
-      --[[if player.gui.top['mod_gui_top_frame'] and
-          player.gui.top['mod_gui_top_frame']['mod_gui_inner_frame'] and
-          player.gui.top['mod_gui_top_frame']['mod_gui_inner_frame']['fav_bar_GUI'] then
-        player.gui.top['mod_gui_top_frame']['mod_gui_inner_frame']['fav_bar_GUI'].destroy()
-      end]]
+      control.check_favorites_on_off_change(player)
+      --reset_player_favorites(player)
 
       -- clean up any legacy structures
       --[[local faves = cache.get_player_favorites(player)
@@ -175,60 +135,61 @@ local function initialize()
           end
         end
       end]]
+      -- cache.init_player(player)
 
-      cache.init_player(player)
-
+      -- Helps to place the gui at the end of the guis
       fav_bar_GUI.update_ui(player)
     end
   end
   __initialized = true
 end
 
+-- Tick events
+local RESPONSIVE_TICKS = 30 * 1
+local TICKS_PER_MINUTE = 60 * 60 * 1
+local TICKS_PER_FIVE_MINUTES = 60 * 60 * 5 -- 18,000 ticks
 
-
-
--- Run Once! script.on_event(defines.events.on_tick, nil)
-script.on_event(defines.events.on_tick, function(event)
-  if not __initialized then
-    if game then
-      initialize()
-      --script.on_event(defines.events.on_tick, nil)
-    end
+script.on_nth_tick(RESPONSIVE_TICKS, function(event)
+  if game and not __initialized then
+    initialize()
   end
 
-  --[[if event.tick % 20 == 0 then
-    for _, player in pairs(game.connected_players) do
-      local current_render_mode = player.render_mode
-      local saved_render_mode = storage.qmtt.player_data[player.index].render_mode
-
-      if saved_render_mode ~= current_render_mode then
-        storage.qmtt.player_data[player.index].render_mode = current_render_mode
-
-        if edit_fave_GUI.is_open(player) then
-          edit_fave_GUI.update_ui(player.index)
-        end
+  --react to ui setting change?
+  --[[for _, player in pairs(game.connected_players) do
+    if player then
+      if add_tag_GUI.is_open(player) then
+        add_tag_GUI.open(player, storage.qmtt.GUI.AddTag.players[player.index].position)
+      end
+      if edit_fave_GUI.is_open(player) then
+        edit_fave_GUI.update_ui(player.index)
       end
     end
-  end ]]
+  end--]]
+end)
 
-  if event.tick % 120 == 0 then
-    for _, player in pairs(game.connected_players) do
-      if player then
-        local current_scale = player.display_scale
-        local saved_scale = storage.qmtt.player_data[player.index].interface_scale
+--[[
+script.on_nth_tick(TICKS_PER_MINUTE, function(event)
+  --if game then
+  --end
+end)
 
-        if saved_scale ~= current_scale then
-          -- Interface size has changed
-          saved_scale = current_scale
+script.on_nth_tick(TICKS_PER_FIVE_MINUTES, function(event)
 
-          if edit_fave_GUI.is_open(player) then
-            edit_fave_GUI.update_ui(player.index)
-          end
-        end
-      end
+end)
+]]
+
+script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
+  local player = game.get_player(event.player_index)
+  local setting_name = event.setting
+  local setting_type = event.setting_type
+
+  if player and setting_type == "runtime-per-user" then
+    if setting_name == PREFIX .. "favorites-on" then
+      control.check_favorites_on_off_change(player)
     end
   end
 end)
+
 
 gui.add_handlers(add_tag_GUI.handlers)
 gui.add_handlers(fav_bar_GUI.handlers)
@@ -257,13 +218,10 @@ script.on_event(defines.events.on_chart_tag_modified, function(event)
 end)
 
 
-
-
-
-
 -- set events for hotkeys
 for i = 1, 10 do
   script.on_event(PREFIX .. "teleport-to-fave-" .. i, function(event)
+    ---@diagnostic disable-next-line: undefined-field
     local player = game.players[event.player_index]
     if player then
       local faves = cache.get_player_favorites(player)
@@ -284,10 +242,54 @@ end
 
 control = {}
 
+function control.check_favorites_on_off_change(player)
+  if player.mod_settings[PREFIX .. "favorites-on"].value and
+      storage.qmtt.GUI.fav_bar.players[player.index] ~= nil and
+      -- cache.get_player_favorites(player) -- don't use this as it will create a new empty faves collection
+      (storage.qmtt.GUI.fav_bar.players[player.index].faves == nil or
+      #storage.qmtt.GUI.fav_bar.players[player.index].faves == 0) -- count of surface indices
+      then
+    cache.favorite_the_player_experience(player)
+  else
+    cache.unfavorite_the_player_experience(player)
+  end
+end
+
 --- updates the favorites bar
 function control.update_uis(player)
   if player then
     fav_bar_GUI.update_ui(player)
+  end
+end
+
+--- obviously we cannot handle ALL guis, just handle what we know
+function control.close_guis(player)
+  if player then
+    add_tag_GUI.close(player)
+    edit_fave_GUI.close(player)
+  end
+
+  -- TODO
+  -- always close the stock editor
+  -- not yet accessible, stock editor is handled by c functions
+end
+
+function control.is_edit_fave_open(player)
+  return edit_fave_GUI.is_open(player)
+end
+
+function control.remove_tag_at_position(player, position)
+  if player then
+    local pos_idx = wutils.format_idx_from_position(position)
+
+    qmtt.remove_chart_tag_at_position(player, position)
+    qmtt.remove_ext_tag_at_position(player, position)
+    qmtt.clear_matching_selected_fave(pos_idx)
+    qmtt.clear_matching_fave_places(player, pos_idx)
+
+    -- reset cache and update the fave bar
+    qmtt.reset_chart_tags(player.surface_index)
+    control.update_uis(player)
   end
 end
 
