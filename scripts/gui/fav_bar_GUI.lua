@@ -236,6 +236,7 @@ fav_bar_GUI.handlers = {
                     if player then
                         local index_fave = nil
                         local idx_num = event.element.number
+                        if idx_num == nil then return end
 
                         if idx_num == 0 then idx_num = 10 end
 
