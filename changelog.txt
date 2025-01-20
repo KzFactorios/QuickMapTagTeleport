@@ -85,3 +85,11 @@ Date: 2025-01-18
     - Fix control.on_player_created
     - Fix cache.lua:166: attempt to index local 'surf' (a nil value) - I could not recreate, but I 
     -     added safeguards just in case
+---------------------------------------------------------------------------------------------------
+Version: 0.2.3
+Date: 2025-01-20
+
+  Changes:
+    - Remove ability to use mod's interface on space platforms, removed fave bar when on space platforms
+    - Implemented a possible fix to incompatibility with EditorExtensions mod
+    - Updated REAMDE to better explain what the mod does and does not do

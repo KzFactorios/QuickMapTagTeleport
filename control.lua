@@ -111,9 +111,13 @@ end)
 script.on_event(defines.events.on_player_changed_force, function(event)
   local player = game.players[event.player_index]
   if player then
-    cache.reset_surface_chart_tags(player)
+    -- implemented to handle EditorExtensions incompat? 1/20/2025
+    local ok, result = pcall(cache.reset_surface_chart_tags, player)
+    -- cache.reset_surface_chart_tags(player)
   end
 end)
+
+
 
 local __initialized = false
 local function initialize()
@@ -232,8 +236,11 @@ for i = 1, 10 do
       if faves then
         local sel_fave = faves[i]
         if sel_fave and next(sel_fave) and sel_fave._pos_idx and sel_fave._pos_idx ~= "" then
+          
           -- TODO make this a setting
           local search_radius = 10
+
+          -- Teleporting on a space platform is handled at teleport function
           map_tag_utils.teleport_player_to_closest_position(player,
             wutils.decode_position_from_pos_idx(sel_fave._pos_idx),
             search_radius)

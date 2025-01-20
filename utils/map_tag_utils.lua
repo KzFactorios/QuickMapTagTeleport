@@ -167,18 +167,36 @@ function map_tag_utils.position_has_colliding_tags(position, snap_scale, player)
   --TODO RESEARCH return next(colliding_tags) ~= nil
 end
 
+--- evaluates player surface and determines if player is in space
+function map_tag_utils.is_on_space_platform(player)
+  if player and player.surface then
+    if player.surface.map_gen_settings then
+      local map_gen = player.surface.map_gen_settings
+      -- Planets have either default/custom terrain gen or specific planet presets
+      return map_gen.preset == "space-platform" or map_gen.preset == "space"
+    end
+  end
+  return false
+end
+
 -- By virtue of the gui opening...
 -- we know the spot has been AOK'd for being clear of other tags
 -- and it has not yet been cleared for not having structures in
 -- the way. So ensure we are "clear to land" or find the closest
 -- spot to where we think we were going
 -- aka check if we are in a structure, teleport closest to the spot we have already selected
+-- Player's are not allowed to teleport on space platforms!
 function map_tag_utils.teleport_player_to_closest_position(player, target_position, search_radius)
   if player then
+    if map_tag_utils.is_on_space_platform(player) then
+      return nil, "The surgeon general has determined that teleportation on space platforms may incur death and is not authorized!"
+    end
+
     storage.qmtt.player_data[player.index].render_mode = player.render_mode
     local surface = player.surface
     local return_pos = nil
-    local return_msg = "No valid teleport position found within the search radius. Please select another location."
+    local return_msg =
+    "No valid teleport position found within the search radius. Please select another location or you could try increasing the search radius in settings. The hive mind discourages this practice as it will reduce the accuracy of your teleport landing points."
 
     -- Find a non-colliding position near the target position
     local closest_position = surface.find_non_colliding_position(
@@ -191,8 +209,10 @@ function map_tag_utils.teleport_player_to_closest_position(player, target_positi
     -- high precision, slowest, use 8
     )
 
+    local valid = player.surface.can_place_entity({ name = "character", position = closest_position })
+
     -- If a position is found, teleport the player there
-    if closest_position then
+    if closest_position and valid then
       if player.teleport(closest_position, player.surface) then
         return_pos = closest_position
         return_msg = ""

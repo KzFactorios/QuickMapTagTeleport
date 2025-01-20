@@ -202,7 +202,9 @@ function add_tag_GUI.open(player, position_to_open_from)
   if player and position then
     control.close_guis(player)
 
-    local settings = add_tag_settings.getPlayerSettings(player)
+    -- Don't allow the interface on a space platform
+    if map_tag_utils.is_on_space_platform(player) then return end
+
     local posTxt = add_tag_GUI.format_position_text(position)
 
     -- find tags with position =

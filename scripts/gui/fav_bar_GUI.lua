@@ -24,6 +24,10 @@ end
 function fav_bar_GUI.update_ui(player)
     if player then
         fav_bar_GUI.close(player)
+
+        -- Don't allow the interface on a space platform
+        if map_tag_utils.is_on_space_platform(player) then return end
+
         gui.build(mod_gui.get_button_flow(player), { fav_bar_GUI.add_fav_bar_template(player) })
         -- sync_buttons_to_faves(player)
 
@@ -83,7 +87,7 @@ function fav_bar_GUI.sync_buttons_to_faves(player)
             local butts = mod_gui.get_button_flow(player)["fav_bar_GUI"].fav_bar_widget.fav_bar_row.children
 
             local buttons = {} --wutils.tableContainsLikeKey(butts, "tele_") or {}
-            local add_tag_settings = require("settings/add_tag_settings")
+
             for i = 1, #butts do
                 if wutils.starts_with(butts[i].name, "tele_") then
                     table.insert(buttons, butts[i])
@@ -251,7 +255,7 @@ fav_bar_GUI.handlers = {
                                 local og_position = player.position
                                 local og_surface_index = player.surface_index
                                 local all_faves = cache.get_player_favorites(player)
-                                
+
                                 if all_faves and next(all_faves) then
                                     index_fave = all_faves[idx_num]
                                 end

@@ -12,6 +12,13 @@ What if you could simply open a dialog by **right-clicking** on the map view and
 Maybe you have been stymied by having to go through multiple steps just to create a map tag? 
 Simply **right-click** and create your tag. That's it!
 
+### A quick note before we begin:
+- At this time, the gist of this mod is to allow the player to teleport between locations on their current surface
+- You are allowed 10 favorited (hotkey) slots per surface
+- It is not intended to be a transportation device to take you to other planets or space platforms
+- It is also not intended to carry or automatically transport items from one place to another, with the exception of gear contained within the player's inventory
+- If you use this mod to teleport on a space platform and teleport to an invalid location (like empty space without tiles) which is entirely achievable when using higher values for teleport radius, **it is entirely possible that the the player will fall and die!** It is for this reason that I have removed the mod's functionality on space platforms for the time being.
+
 ### The Favorites Bar:
 - Left-click on the heart to show/hide the favorites bar 
 - Left-click in the fave bar or ctrl+# on a numbered location to teleport
