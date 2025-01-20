@@ -71,3 +71,17 @@ Date: 2025-01-18
     - multiplayer, multiplayer, multiplayer. 
     - code refactoring
     - locale
+---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+Date: 2025-01-19
+
+  Fixes:
+    - Fixed bug where right-click on an empty fave_bar cell was not being handled properly
+---------------------------------------------------------------------------------------------------
+Version: 0.2.2
+Date: 2025-01-18
+
+  Fixes:
+    - Fix control.on_player_created
+    - Fix cache.lua:166: attempt to index local 'surf' (a nil value) - I could not recreate, but I 
+    -     added safeguards just in case

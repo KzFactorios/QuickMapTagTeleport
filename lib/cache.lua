@@ -46,7 +46,6 @@ end
 function cache.init_player(player)
     local player_index = player.index
     if player then
-        
         cache.init()
 
         if not storage.qmtt.player_data[player_index] then
@@ -146,15 +145,17 @@ end
 
 function cache.remove_invalid_tags(player, tag_list)
     local list = {}
-    for _, tag in pairs(tag_list) do
-        if tag.valid then
-            table.insert(list, tag)
-        else
-            --local pos = wutils.format_idx_from_position(tag.position)
-            -- remove from player faves
-            -- remove from selected fave
-            -- remove from ext tags
-            control.remove_tag_at_position(player, tag.position)
+    if tag_list ~= nil then
+        for _, tag in pairs(tag_list) do
+            if tag.valid then
+                table.insert(list, tag)
+            else
+                --local pos = wutils.format_idx_from_position(tag.position)
+                -- remove from player faves
+                -- remove from selected fave
+                -- remove from ext tags
+                control.remove_tag_at_position(player, tag.position)
+            end
         end
     end
     return list
@@ -163,6 +164,10 @@ end
 function cache.get_chart_tags_from_cache(player)
     if player then
         local surf = storage.qmtt.surfaces[player.surface_index]
+        if surf == nil then
+            cache.init_player(player)
+            surf = storage.qmtt.surfaces[player.surface_index]
+        end
         if not surf.chart_tags or #surf.chart_tags == 0 then
             surf.chart_tags = cache.remove_invalid_tags(player, player.force.find_chart_tags(player.surface_index))
         end

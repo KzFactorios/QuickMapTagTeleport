@@ -23,7 +23,12 @@ script.on_load(function()
 end)
 
 script.on_event(defines.events.on_player_created, function(event)
-  cache.on_player_created(event)
+  if game then
+    local player = game.players[event.player_index]
+    if player then
+      cache.init_player(player)
+    end
+  end
 end)
 
 script.on_configuration_changed(function(event)
