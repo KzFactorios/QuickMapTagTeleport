@@ -32,11 +32,30 @@ Simply **right-click** and create your tag. That's it!
 - If you would like to change the hotkey of the favorite, right-click on the favorite and a gui will popup that allows you to click on arrows to change the hotkey. 
 - Currently, this works by swapping positions with the adjacent favorite, so you may have to do some twiddling to get things just right.
 
+### In-A-Jam? Use a command:
+
+##### Sometimes things do not work properly and you need a fix. For those occasions, I have provided the following commands
+-----  
+- Usage: /qmtt_delete_by_fave_index <fave_bar_index>
+- So open up the command console by pressing the tilde (~) key and type the following: 
+- (This pre-supposes that the favorite in question lives in the #3 slot)
+- /qmtt_delete_by_fave_index 3
+- You may have to this twice if you rarely use commands - the console will let you know
+-----  
+- Usage: /qmtt_delete_by_pos_idx <pos_idx>
+- pos_idx refers to the position of the tag and is in the format xxx.yyy
+- You have to be very careful to get the coordinates exactly correct, but they should be provided for you if you right-click on the tag. Use the x and y values, including any minus signs and separate them with a dot.
+- ex. I right click on a tag and it shows me the coordinates x: -44, y: -24
+- So I would open up the command console by pressing the tilde (~) key and type the following:
+- /qmtt_delete_by_pos_idx -44.-24
+-----  
+- I will continue to work on these issues, but I figured I'd give you a way to fix them yourselves. 
+
 ### NOT YET TESTED FOR MULTIPLAYER!
 - although the only issue you may run into is uninstalling and I plan to conquer this issue soon.
 
 
-#### Based on the hard work of [Quick Map Tag](https://mods.factorio.com/mod/QuickMapTag) by **[templar4522](https://mods.factorio.com/user/templar4522)** and [Tag To Teleport](https://mods.factorio.com/mod/TagToTeleport) by **[darkfrei](https://mods.factorio.com/user/darkfrei)** 
+#### Based on the hard work of [Quick Map Tag](https://mods.factorio.com/mod/QuickMapTag) by **[templar4522](https://mods.factorio.com/user/templar4522)** and [Tag To Teleport](https://mods.factorio.com/mod/TagToTeleport) by **[darkfrei](https://mods.factorio.com/user/darkfrei)** --
 
-
+-----  
 Check the changelog for further notes.

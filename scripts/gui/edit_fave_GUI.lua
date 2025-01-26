@@ -163,7 +163,7 @@ end
 
 function edit_fave_GUI.update_ui(player_index)
     if game then
-        local player = game.players[player_index]
+        local player = game.get_player(player_index)
         if player then
             local fave_pos = cache.get_player_selected_fave_pos_idx(player)
             if not storage.qmtt.GUI.edit_fave.players[player.index] then
@@ -193,7 +193,7 @@ function edit_fave_GUI.update_ui(player_index)
 end
 
 function edit_fave_GUI.on_player_removed(player_index)
-    local player = game.players[player_index]
+    local player = game.get_player(player_index)
     if player then
         edit_fave_GUI.close(player)
     end
@@ -220,7 +220,7 @@ end
 
 -- handle when a fav_bar button has been clicked
 function edit_fave_GUI.handle_fave_clicked(event) -- fave_index, player_index
-    local player = game.players[event.player_index]
+    local player = game.get_player(event.player_index)
     if player and edit_fave_GUI.is_open(player) then
         edit_fave_GUI.update_ui(event.player_index)
     end
@@ -280,7 +280,7 @@ edit_fave_GUI.handlers = {
             icon = {
                 on_gui_elem_changed = function(event)
                     if game then
-                        local player = game.players[event.player_index]
+                        local player = game.get_player(event.player_index)
                         if player then
                         end
                     end

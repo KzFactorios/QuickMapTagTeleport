@@ -94,7 +94,8 @@ function wutils.find_element_by_position(tbl, key, pos)
             if element[key].x ~= nil and element[key].y ~= nil and pos and
                 (tostring(element[key]["x"]) == pos.x and tostring(element[key]["y"]) == pos.y) or
                 (tostring(element[key].x) == pos.x and tostring(element[key].y) == pos.y) or
-                (tostring(element[key].x) == tostring(pos.x) and tostring(element[key].y) == tostring(pos.y))
+                (tostring(element[key].x) == tostring(pos.x) and tostring(element[key].y) == tostring(pos.y)) or 
+                (tonumber(element[key].x) == tonumber(pos.x) and tonumber(element[key].y) == tonumber(pos.y))
             then
                 return element
             end

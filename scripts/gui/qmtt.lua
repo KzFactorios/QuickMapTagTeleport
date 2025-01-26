@@ -76,7 +76,7 @@ end
 script.on_event(defines.events.on_chart_tag_added, function(event)
     --qmtt.reset_chart_tags()
     if event.player_index then
-        --[[local editor = game.players[event.player_index].gui.screen["gui-tag-edit"]
+        --[[local editor = game.get_player(event.player_index).gui.screen["gui-tag-edit"]
         if editor then
             local qtag = qmtt.add_new_tag(event.tag)
         end]]
@@ -88,7 +88,7 @@ end)
 --TODO does this throw on add tag changes?
 script.on_event(defines.events.on_chart_tag_modified, function(event)
     if game and event.player_index then
-        local player = game.players[event.player_index]
+        local player = game.get_player(event.player_index)
         if player then
             local old_pos = wutils.format_idx_from_position(event.old_position)
 
@@ -123,7 +123,7 @@ script.on_event(defines.events.on_chart_tag_modified, function(event)
 
             -- TODO update favorite?
 
-            qmtt.reset_chart_tags(player.surface_index)
+            qmtt.reset_chart_tags(player.physical_surface_index)
         end
     end
 end)
@@ -131,7 +131,7 @@ end)
 ---  Cleans up linked chart tags, extended tags, selected faves
 function qmtt.handle_chart_tag_removal(event)
     if game and event.player_index then
-        local player = game.players[event.player_index]
+        local player = game.get_player(event.player_index)
         if player then
             control.remove_tag_at_position(player, event.tag.position)
         end
@@ -142,7 +142,7 @@ end
 --- Nothing to do, handled elsewhere in other flows
 --[[function qmtt.handle_chart_tag_added(event)
     if game and event.player_index then
-        local player = game.players[event.player_index]
+        local player = game.get_player(event.player_index)
         if player then
             -- create a qmtt and an extended tag
         end
@@ -192,7 +192,7 @@ function qmtt.handle_chart_tag_modified(event)
 
         -- reset any UIs, chart_tags?
         if fav_bar_reset and game and event.player_index then
-            local player = game.players[event.player_index]
+            local player = game.get_player(event.player_index)
             if player then
                 fav_bar_GUI.update_ui(player)
             end
@@ -202,7 +202,7 @@ end
 
 function qmtt.remove_chart_tag_at_position(player, pos)
     if player then
-        local _chart_tags = storage.qmtt.surfaces[player.surface_index].chart_tags
+        local _chart_tags = storage.qmtt.surfaces[player.physical_surface_index].chart_tags
         if _chart_tags and #_chart_tags > 0 then
             local idx = wutils.find_element_idx_by_position(_chart_tags, "position", pos)
             if idx and idx > 0 then
@@ -214,7 +214,7 @@ end
 
 function qmtt.remove_ext_tag_at_position(player, pos)
     if player then
-        local _ext_tags = storage.qmtt.surfaces[player.surface_index].extended_tags
+        local _ext_tags = storage.qmtt.surfaces[player.physical_surface_index].extended_tags
         if _ext_tags and #_ext_tags > 0 then
             local idx = wutils.find_element_idx_by_position(_ext_tags, "position", pos)
             if idx and idx > 0 then
@@ -236,7 +236,7 @@ end
 
 function qmtt.clear_matching_fave_places(player, pos_idx)
     if player then
-        local surfs = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.surface_index]
+        local surfs = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.physical_surface_index]
         local fave_idx = wutils.get_element_index(surfs, "_pos_idx", pos_idx)
         if fave_idx > 0 and fave_idx <= #surfs then
             surfs[fave_idx] = {}

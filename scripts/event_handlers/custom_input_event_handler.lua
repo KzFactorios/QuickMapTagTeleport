@@ -77,7 +77,7 @@ end
 
 function custom_input_event_handler.on_fave_order_updated(event)
   if game then
-    local player = game.players[event.player_index]
+    local player = game.get_player(event.player_index)
     if player then
       fav_bar_GUI.update_ui(player)
       edit_fave_GUI.update_ui(player.index)
@@ -87,7 +87,7 @@ end
 
 function custom_input_event_handler.on_selected_fave_changed(event)
   if game then
-    local player = game.players[event.player_index]
+    local player = game.get_player(event.player_index)
     if player then
       edit_fave_GUI.on_selected_fave_changed(event)
       edit_fave_GUI.update_ui(event.player_index)

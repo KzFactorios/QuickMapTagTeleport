@@ -1,11 +1,11 @@
-local PREFIX        = require("settings/constants").PREFIX
-local math          = require("__flib__/math")
-local wutils        = require("wct_utils")
-local table         = require("__flib__/table")
-local fave          = require("scripts/gui/fave")
-local next          = next
+local PREFIX           = require("settings/constants").PREFIX
+local add_tag_settings = require("settings/add_tag_settings")
+local fave             = require("scripts/gui/fave")
+local table            = require("__flib__/table")
+local math             = require("__flib__/math")
+local wutils           = require("wct_utils")
 
-local map_tag_utils = {}
+local map_tag_utils    = {}
 
 -- note that we should have already updated tags and qmtts (displaytext/description)
 -- we are just making sure objects are correctly assigned to faves
@@ -14,7 +14,7 @@ function map_tag_utils.curate_player_fave_places(is_favorite, player, pos_idx)
     -- get all the potential pieces/parts
     local player_index = player.index
     local fave_places = storage.qmtt.GUI.fav_bar.players[player_index]
-        .fave_places[player.surface_index]
+        .fave_places[player.physical_surface_index]
     local existing_fave = wutils.find_element_by_key_and_value(
       fave_places, "_pos_idx", pos_idx)
 
@@ -25,7 +25,7 @@ function map_tag_utils.curate_player_fave_places(is_favorite, player, pos_idx)
       if not existing_fave then
         local new_index = fave.get_next_open_fave_places_index(player)
         if new_index ~= -1 then
-          existing_fave = fave.create_fave(pos_idx, player.surface_index, false)
+          existing_fave = fave.create_fave(pos_idx, player.physical_surface_index)
           fave_places[new_index] = existing_fave
         else
           -- TODO put max faves in a setting
@@ -56,6 +56,7 @@ function wutils.establish_working_tag(input_tag, player)
     -- working_tag will hold our intended tag information
     local working_tag = nil
 
+    -- register tag with player forces tags
     if existing_tag then
       existing_tag.text = input_tag.text
       existing_tag.last_user = input_tag.last_user
@@ -64,6 +65,12 @@ function wutils.establish_working_tag(input_tag, player)
       working_tag = existing_tag
     else
       working_tag = player.force.add_chart_tag(player.surface, input_tag)
+      -- register working tag with qmtt.surfaces
+      if working_tag ~= nil then
+        if wutils.find_element_by_position(storage.qmtt.surfaces[player.physical_surface_index].chart_tags, "position", working_tag.position) == nil then
+          table.insert(storage.qmtt.surfaces[player.physical_surface_index].chart_tags, working_tag)
+        end
+      end
     end
 
     return working_tag
@@ -77,23 +84,23 @@ function wutils.establish_working_qmtt(working_tag, player, is_favorite, display
     local player_index = player.index
     local pos_idx = wutils.format_idx_from_position(working_tag.position)
     local existing_q = wutils.find_element_by_key_and_value(
-      storage.qmtt.surfaces[player.surface_index].extended_tags, "idx", pos_idx)
+      storage.qmtt.surfaces[player.physical_surface_index].extended_tags, "idx", pos_idx)
 
     if not existing_q then
       local _qmtt = {
         idx = pos_idx,
-        surface_id = player.surface_index,
+        surface_id = player.physical_surface_index,
         position = working_tag.position,
         faved_by_players = {},
       }
-      table.insert(storage.qmtt.surfaces[player.surface_index].extended_tags, _qmtt)
-      --local et_index = #storage.qmtt.surfaces[player.surface_index].extended_tags
-      --storage.qmtt.surfaces[player.surface_index].extended_tags[et_index + 1] = _qmtt
+      table.insert(storage.qmtt.surfaces[player.physical_surface_index].extended_tags, _qmtt)
+      --local et_index = #storage.qmtt.surfaces[player.physical_surface_index].extended_tags
+      --storage.qmtt.surfaces[player.physical_surface_index].extended_tags[et_index + 1] = _qmtt
       existing_q = _qmtt
     end
 
     existing_q.idx = pos_idx
-    existing_q.surface_id = player.surface_index
+    existing_q.surface_id = player.physical_surface_index
     existing_q.position.x = working_tag.position.x
     existing_q.position.y = working_tag.position.y
     existing_q.fave_displaytext = display_text
@@ -186,23 +193,31 @@ end
 -- spot to where we think we were going
 -- aka check if we are in a structure, teleport closest to the spot we have already selected
 -- Player's are not allowed to teleport on space platforms!
-function map_tag_utils.teleport_player_to_closest_position(player, target_position, search_radius)
+function map_tag_utils.teleport_player_to_closest_position(player, target_position)
   if player then
     if map_tag_utils.is_on_space_platform(player) then
-      return nil, "The surgeon general has determined that teleportation on space platforms may incur death and is not authorized!"
+      return nil,
+          "The surgeon general has determined that teleportation on space platforms may incur death and is not authorized!"
     end
 
     storage.qmtt.player_data[player.index].render_mode = player.render_mode
     local surface = player.surface
     local return_pos = nil
     local return_msg =
-    "No valid teleport position found within the search radius. Please select another location or you could try increasing the search radius in settings. The hive mind discourages this practice as it will reduce the accuracy of your teleport landing points."
+    "No valid teleport position found within the teleport radius. Please select another location or you could try increasing the search radius in settings. The hive mind discourages this practice as it will reduce the accuracy of your teleport landing points."
+
+    local teleport_radius = player.mod_settings[PREFIX .. "teleport-radius"].value
+    if teleport_radius < add_tag_settings.TELEPORT_RADIUS_MIN then
+      teleport_radius = add_tag_settings.TELEPORT_RADIUS_MIN
+    elseif teleport_radius > add_tag_settings.TELEPORT_RADIUS_MAX then
+      teleport_radius = add_tag_settings.TELEPORT_RADIUS_MAX
+    end
 
     -- Find a non-colliding position near the target position
     local closest_position = surface.find_non_colliding_position(
       player.character.name, -- Prototype name of the player's character
       target_position,       -- Target position to search around
-      search_radius,         -- Search radius in tiles
+      teleport_radius,       -- Search radius in tiles
       4                      -- Precision (smaller values = more precise, but slower) Range 0.01 - 8
     -- fastest but coarse, use 2-4
     -- balanced, use 6
@@ -240,6 +255,5 @@ end
 map_tag_utils.Dump_Data = function()
   --game.write_file("global_data_dump.txt", serpent.block(global))
 end
-
 
 return map_tag_utils

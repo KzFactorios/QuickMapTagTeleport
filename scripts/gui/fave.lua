@@ -1,4 +1,3 @@
-
 local wutils = require("wct_utils")
 local cache  = require("lib/cache")
 
@@ -6,20 +5,17 @@ local cache  = require("lib/cache")
 Fave_Structure
 _pos_idx
 _surface_id
-hotkey_locked
 ]]
 
 local fave = {}
 
 local _pos_idx = ""
 local _surface_id = -1
-local hotkey_locked = false
 
-function fave.create_fave(pos, surface_id, hotkey_locked)
+function fave.create_fave(pos, surface_id)
     local self = {}
     self._pos_idx = pos
     self._surface_id = surface_id
-    self.hotkey_locked = hotkey_locked or false
     return self
 end
 
@@ -94,7 +90,6 @@ function fave.convert_qmtt_to_fave(player_index, _qmtt)
         local _fave = {
             _pos_idx = pos_idx,
             _surface_id = _qmtt.surface_id,
-            hotkey_locked = false,
         }
         return _fave
     end
@@ -105,7 +100,6 @@ function fave.convert_old_fave_to_new(old_fave)
     local _fave = {
         _pos_idx = old_fave._pos_idx,
         _surface_id = old_fave._qmtt.surface_id,
-        hotkey_locked = old_fave.hotkey_locked,
     }
     return _fave
 end
@@ -113,12 +107,12 @@ end
 --@params old_position, tag, player_index
 function fave.refresh_data(event)
     if game then
-        local player = game.players[event.player_index]
+        local player = game.get_player(event.player_index)
         if player then
             --find fave in collection
             local existing_f = wutils.find_element_by_key_and_value(
                 storage.qmtt.GUI.fav_bar.players[event.player_index]
-                .fave_places[player.surface_index], "_pos_idx",
+                .fave_places[player.physical_surface_index], "_pos_idx",
                 wutils.format_idx_from_position(event.old_position))
 
             if existing_f then
@@ -130,7 +124,7 @@ end
 
 function fave.get_next_open_fave_places_index(player)
     if player then
-        local fave_places = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.surface_index]
+        local fave_places = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.physical_surface_index]
         for i = 1, #fave_places do
             local place = fave_places[i]
             if place == nil or (type(place) == "table" and next(place) == nil) or place._pos_idx == '' then
@@ -139,23 +133,6 @@ function fave.get_next_open_fave_places_index(player)
         end
     end
     return -1
-end
-
--- TODO make 10 a var/settings
-function fave.get_fave_places_available_slots(player)
-    if player then
-        local fave_places = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.surface_index]
-        local count = 0
-        
-        for i = 1, #fave_places do
-            local place = fave_places[i]
-            if place == nil or (type(place) == "table" and next(place) == nil) or place._pos_idx == '' then
-                count = count + 1
-            end
-        end
-        return 10 - count
-    end
-    return 0
 end
 
 return fave

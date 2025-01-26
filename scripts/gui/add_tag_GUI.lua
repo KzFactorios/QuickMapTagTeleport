@@ -31,7 +31,7 @@ local function add_tag_frame_template(player, formatted_position, text, icon, _q
     handlers = "add_tag.fields.text"
   })
 
-  if player.mod_settings[PREFIX .. "favorites-on"].value then
+  if player.mod_settings[PREFIX .. "favorites-on"].value and cache.get_available_fave_slots(player) < 10 then
     table.insert(container_elements, { type = "label", caption = "Favorite" })
     table.insert(container_elements, {
       type = "checkbox",
@@ -172,7 +172,7 @@ end
 
 --- Close the gui and remove player refs to AddTag
 function add_tag_GUI.on_player_removed(player_index)
-  local player = game.players[player_index]
+  local player = game.get_player(player_index)
   if player then
     add_tag_GUI.close(player)
     storage.qmtt.GUI.AddTag.players[player_index] = nil
@@ -196,22 +196,24 @@ function add_tag_GUI.format_position_text(position)
   return string.format("x: %d, y: %d", math.floor(position.x), math.floor(position.y))
 end
 
-function add_tag_GUI.open(player, position_to_open_from)
-  local position = position_to_open_from
+add_tag_GUI.gui_position = {}
 
-  if player and position then
+function add_tag_GUI.open(player, position_to_open_from)
+  add_tag_GUI.gui_position = position_to_open_from
+
+  if player and add_tag_GUI.gui_position and add_tag_GUI.gui_position ~= {} then
     control.close_guis(player)
 
     -- Don't allow the interface on a space platform
     if map_tag_utils.is_on_space_platform(player) then return end
 
-    local posTxt = add_tag_GUI.format_position_text(position)
+    local posTxt = add_tag_GUI.format_position_text(add_tag_GUI.gui_position)
 
     -- find tags with position =
     local _tags = cache.get_chart_tags_from_cache(player)
-    local _tag = wutils.find_element_by_position(_tags, "position", position)
+    local _tag = wutils.find_element_by_position(_tags, "position", add_tag_GUI.gui_position)
 
-    local _qmtt = cache.get_matching_qmtt_by_position(player.surface_index, position)
+    local _qmtt = cache.get_matching_qmtt_by_position(player.physical_surface_index, add_tag_GUI.gui_position)
 
     local new_tag_text = ""
     local new_tag_icon = { type = "virtual", name = "" }
@@ -228,8 +230,8 @@ function add_tag_GUI.open(player, position_to_open_from)
       new_tag_icon = _tag.icon
     elseif _qmtt == nil and _tag == nil then
       _qmtt = {
-        idx = add_tag_GUI.format_position_text(position),
-        position = position,
+        idx = add_tag_GUI.format_position_text(add_tag_GUI.gui_position),
+        position = add_tag_GUI.gui_position,
         faved_by_players = {},
         fave_display_text = "",
         fave_description = "",
@@ -249,8 +251,8 @@ function add_tag_GUI.open(player, position_to_open_from)
     elements.buttons.draggable_space_header.drag_target = elements.root_frame
     elements.buttons.draggable_space_footer.drag_target = elements.root_frame
 
-    storage.qmtt.GUI.AddTag.players[player.index].position.x = position.x
-    storage.qmtt.GUI.AddTag.players[player.index].position.y = position.y
+    --storage.qmtt.GUI.AddTag.players[player.index].position.x = position.x
+    --storage.qmtt.GUI.AddTag.players[player.index].position.y = position.y
   end
 end
 
@@ -260,10 +262,11 @@ function add_tag_GUI.close(player)
   end
 end
 
-function add_tag_GUI.get_position(player_index)
-  if player_index then
-    return storage.qmtt.GUI.AddTag.players[player_index].position
-  end
+function add_tag_GUI.get_position()
+  local pos = add_tag_GUI.gui_position
+  if tostring(pos.x) == "-0" then pos.x = 0 end
+  if tostring(pos.y) == "-0" then pos.y = 0 end
+  return pos
 end
 
 function add_tag_GUI.get_text(player)
@@ -297,7 +300,9 @@ end]]
 
 function add_tag_GUI.get_favorite(player)
   if player then
-    if add_tag_GUI.is_open(player) and player.mod_settings[PREFIX .. "favorites-on"].value then
+    if add_tag_GUI.is_open(player) and
+        player.mod_settings[PREFIX .. "favorites-on"].value and
+        cache.get_available_fave_slots(player) < 10 then
       return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["checkbox-favorite"].state
     end
   end
@@ -368,7 +373,7 @@ add_tag_GUI.handlers = {
           if player then
             map_tag_utils.save_tag(
               player,
-              add_tag_GUI.get_position(player.index),
+              add_tag_GUI.get_position(),
               add_tag_GUI.get_text(player),
               add_tag_GUI.get_icon(player),
               "", --add_tag_GUI.get_displaytext(player),
@@ -384,13 +389,11 @@ add_tag_GUI.handlers = {
         on_gui_click = function(event)
           local player = game.get_player(event.player_index)
           if player then
-            local target_position = add_tag_GUI.get_position(player.index)
+            local target_position = add_tag_GUI.get_position()
             local og_position = player.position
-            local og_surface_index = player.surface_index
-            -- TODO assign a player setting
-            local radius = 10
+            local og_surface_index = player.physical_surface_index
 
-            local tele_pos, msg = map_tag_utils.teleport_player_to_closest_position(player, target_position, radius)
+            local tele_pos, msg = map_tag_utils.teleport_player_to_closest_position(player, target_position)
 
             if tele_pos then
               game.print(string.format("%s teleported to x: %d, y: %d", player.name, tele_pos.x, tele_pos.y))

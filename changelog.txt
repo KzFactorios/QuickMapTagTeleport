@@ -1,41 +1,58 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.1.0
-Date: 2024-10-27
+Version: 0.2.5
+Date: 2025-01-25
 
-  Changes:
-    - NOT TESTED OUTSIDE OF NAUVIS!!!!!
-    - ported code to work with 2.0
-    - add in teleport functionality to the quick map code
-    - redo some styling
-    - fixed bug affecting how icons were being retrieved (typo: elemets -> elements)
-
-  Todo:
-    - TODO make this unlockable by technology - make as an option?
-    - TODO test with multiplayer
-    - TODO bug currently allows teleporting into a structure (high wire)
-    -      did changing snap fix this?
-    - TODO restyle interface
-    - TODO Add in functionality to have hotkey teleports 0-9?
-    -      with ability to list and edit those hotkeys
-    - TODO Make dialog react to enter key?
-    - TODO enable the settings!
-    - TODO more code re-org
+  Fixes:
+    - Multiplayer loading errors in cache.lua
+    - Refactor game.players[idx] -> game.get_player(idx), player.surface_index -> player.physical_surface_index
+    - Refactor, refactor, refactor
+    - Reverse changelog entries
 ---------------------------------------------------------------------------------------------------
-Version: 0.1.1
-Date: 2024-11-17
+Version: 0.2.4
+Date: 2025-01-21
 
   Changes:
-    - (fixed) Test for collision conditions other than "tags only". Shouldn't be able to 
-    -    literally teleport into things anymore.
-    - Update README.md and info.json
-    - Added settings back into the mix. The player can now control the following parameters:
-    -     Default tag icon, Default tag text, Snap scale, Teleport radius
-    - Add Teleport Collision Radius setting for upcoming feature changes
+    - Fixed issue with some favorites not displaying icons correctly
+    - Fixed issue where some tags with coords at 0 were being recorded as -0 and causing problems
+    - Disallow favoriting if user has 10 favorites
+    - Implement teleport radius setting
+---------------------------------------------------------------------------------------------------
+Version: 0.2.3
+Date: 2025-01-20
 
-  Todo:
-    - Hot buttons for favorites 0-9 in top gui. Switchable by settings 
-    - Ctrl + # for favorites
-    - Editor for favorites
+  Changes:
+    - Remove ability to use mod's interface on space platforms, removed fave bar when on space platforms
+    - Implemented a possible fix to incompatibility with EditorExtensions mod
+    - Updated REAMDE to better explain what the mod does and does not do
+---------------------------------------------------------------------------------------------------
+Version: 0.2.2
+Date: 2025-01-18
+
+  Fixes:
+    - Fix control.on_player_created
+    - Fix cache.lua:166: attempt to index local 'surf' (a nil value) - I could not recreate, but I 
+    -     added safeguards just in case
+---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+Date: 2025-01-19
+
+  Fixes:
+    - Fixed bug where right-click on an empty fave_bar cell was not being handled properly
+---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2025-01-18
+
+  Changes:
+    - Where to begin?
+    - Added Favorites to the mix
+    - If you don't want to use favorites, you have the ability to turn them off in the mod settings
+    - Removed mod settings that weren't currently being used. I may bring some back
+    - Addressed some multiplayer concerns. I am sure there are more and will focus on them for next release
+
+  TODO:
+    - multiplayer, multiplayer, multiplayer. 
+    - code refactoring
+    - locale
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.2
 Date: 2024-12-27
@@ -57,39 +74,40 @@ Date: 2024-12-27
     - Raise events for Modified, Added, and Deleted to mod events
     - Guis should handle ESC key hits properly
 ---------------------------------------------------------------------------------------------------
-Version: 0.2.0
-Date: 2025-01-18
+Version: 0.1.1
+Date: 2024-11-17
 
   Changes:
-    - Where to begin?
-    - Added Favorites to the mix
-    - If you don't want to use favorites, you have the ability to turn them off in the mod settings
-    - Removed mod settings that weren't currently being used. I may bring some back
-    - Addressed some multiplayer concerns. I am sure there are more and will focus on them for next release
+    - (fixed) Test for collision conditions other than "tags only". Shouldn't be able to 
+    -    literally teleport into things anymore.
+    - Update README.md and info.json
+    - Added settings back into the mix. The player can now control the following parameters:
+    -     Default tag icon, Default tag text, Snap scale, Teleport radius
+    - Add Teleport Collision Radius setting for upcoming feature changes
 
-  TODO:
-    - multiplayer, multiplayer, multiplayer. 
-    - code refactoring
-    - locale
+  Todo:
+    - Hot buttons for favorites 0-9 in top gui. Switchable by settings 
+    - Ctrl + # for favorites
+    - Editor for favorites
 ---------------------------------------------------------------------------------------------------
-Version: 0.2.1
-Date: 2025-01-19
-
-  Fixes:
-    - Fixed bug where right-click on an empty fave_bar cell was not being handled properly
----------------------------------------------------------------------------------------------------
-Version: 0.2.2
-Date: 2025-01-18
-
-  Fixes:
-    - Fix control.on_player_created
-    - Fix cache.lua:166: attempt to index local 'surf' (a nil value) - I could not recreate, but I 
-    -     added safeguards just in case
----------------------------------------------------------------------------------------------------
-Version: 0.2.3
-Date: 2025-01-20
+Version: 0.1.0
+Date: 2024-10-27
 
   Changes:
-    - Remove ability to use mod's interface on space platforms, removed fave bar when on space platforms
-    - Implemented a possible fix to incompatibility with EditorExtensions mod
-    - Updated REAMDE to better explain what the mod does and does not do
+    - NOT TESTED OUTSIDE OF NAUVIS!!!!!
+    - ported code to work with 2.0
+    - add in teleport functionality to the quick map code
+    - redo some styling
+    - fixed bug affecting how icons were being retrieved (typo: elemets -> elements)
+
+  Todo:
+    - TODO make this unlockable by technology - make as an option?
+    - TODO test with multiplayer
+    - TODO bug currently allows teleporting into a structure (high wire)
+    -      did changing snap fix this?
+    - TODO restyle interface
+    - TODO Add in functionality to have hotkey teleports 0-9?
+    -      with ability to list and edit those hotkeys
+    - TODO Make dialog react to enter key?
+    - TODO enable the settings!
+    - TODO more code re-org

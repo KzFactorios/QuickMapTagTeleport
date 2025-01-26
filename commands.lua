@@ -1,5 +1,12 @@
 local wutils = require("wct_utils")
 
+commands.add_command("qmtt_dump_storage",
+    "debug method to take a look at storage vars. Usage: /qmtt_dump_storage",
+    function()
+        local logFormat = { comment = false, numformat = '%1.8g' }
+        log(serpent.block(storage.qmtt, logFormat))
+    end)
+
 --- Provides a method to delete a mismatched or non-responding favorite.
 commands.add_command("qmtt_delete_by_fave_index",
     "Provides a method to delete a mismatched or non-responding favorite. Usage: /qmtt_delete_by_fave_index <fave_bar_index>",
@@ -83,7 +90,7 @@ commands.add_command("qmtt_delete_by_fave_index",
             end
         end
 
-        
+
 
         -- player can delete remaining items from map
     end)

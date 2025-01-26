@@ -14,9 +14,9 @@ fav_bar_GUI         = {
 }
 
 function fav_bar_GUI.init_player(player_index)
-    local player = game.players[player_index]
+    local player = game.get_player(player_index)
     if player and not storage.qmtt.GUI.fav_bar.players[player_index]
-        .fave_places[player.surface_index] then
+        .fave_places[player.physical_surface_index] then
         cache.get_player_favorites(player)
     end
 end
@@ -127,99 +127,100 @@ function fav_bar_GUI.sync_buttons_to_faves(player)
     end
 end
 
+--- Build the Favorite Bar. Add the favorite hide/show and buttons for every favorite
+--- @param player LuaPlayer
 function fav_bar_GUI.add_fav_bar_template(player)
-    -- Dynamically add buttons for every favorite
-    if player then
-        local faves = cache.get_player_favorites(player)
-        if faves then
-            local child_buttons = {}
+    if not player then return end
 
-            for i = 1, 10 do
-                local index_fave = nil
-                local sprite_path = ""
-                --local fave_displayText = ""
-                --local fave_description = ""
-                local fave_tooltip = ""
-                local fave_number = nil
+    local faves = cache.get_player_favorites(player)
+    if not faves then return end
 
-                if i <= #faves then
-                    index_fave = faves[i]
-                    fave_tooltip = (index_fave._pos_idx or "")
+    local child_buttons = {}
 
-                    if index_fave and next(index_fave) then
-                        sprite_path = fave.format_sprite_path_from_favorite(player, index_fave, false)
+    for i = 1, #faves do
+        local index_fave = nil
+        local sprite_path = ""
+        --local fave_displayText = ""
+        --local fave_description = ""
+        local fave_tooltip = ""
+        local fave_number = nil
 
-                        local ct = fave.get_chart_tag(player, index_fave)
-                        if ct and ct.text ~= nil and string.len(ct.text) > 0 then
-                            fave_tooltip = fave_tooltip .. "\n" .. ct.text
-                        end
+        if i <= #faves then
+            index_fave = faves[i]
+            fave_tooltip = (index_fave._pos_idx or "")
 
-                        fave_number = tostring(i)
-                        if fave_number == "10" then
-                            fave_number = "0"
-                        end
-                        --fave_displayText = fave.get_display_text(player, index_fave)
-                        --fave_description = fave.get_description(player, index_fave)
-                    end
+            if index_fave and next(index_fave) then
+                sprite_path = fave.format_sprite_path_from_favorite(player, index_fave, false)
+
+                local ct = fave.get_chart_tag(player, index_fave)
+                if ct and ct.text ~= nil and string.len(ct.text) > 0 then
+                    fave_tooltip = fave_tooltip .. "\n" .. ct.text
                 end
 
-                table.insert(child_buttons, {
-                    type = "sprite-button",
-                    name = "tele_" .. i,
-                    save_as = "buttons.favorite_sel" .. i,
-                    style = "slot_button",
-                    handlers = "fav_bar.buttons.fave_action",
-                    sprite = sprite_path,
-                    number = fave_number,
-                    tooltip = fave_tooltip,
-                })
+                fave_number = tostring(i)
+                if fave_number == "10" then
+                    fave_number = "0"
+                end
+                --fave_displayText = fave.get_display_text(player, index_fave)
+                --fave_description = fave.get_description(player, index_fave)
             end
+        end
 
-            return {
-                type = "frame",
-                style = "fav_bar_gui",
-                save_as = "root_frame",
-                name = "fav_bar_GUI",
+        table.insert(child_buttons, {
+            type = "sprite-button",
+            name = "tele_" .. i,
+            save_as = "buttons.favorite_sel" .. i,
+            style = "slot_button",
+            handlers = "fav_bar.buttons.fave_action",
+            sprite = sprite_path,
+            number = fave_number,
+            tooltip = fave_tooltip,
+        })
+    end
+
+    return {
+        type = "frame",
+        style = "fav_bar_gui",
+        save_as = "root_frame",
+        name = "fav_bar_GUI",
+        direction = "horizontal",
+        handlers = "fav_bar.root_frame",
+        children =
+        {
+            {
+                type = "flow",
+                name = "fav_bar_widget",
+                save_as = "fav_bar_widget",
                 direction = "horizontal",
-                handlers = "fav_bar.root_frame",
+                horizontally_stretchable = true,
+                vertically_stretchable = true,
+                minimal_width = 200,
+                minimal_height = 80,
+                padding = 0,
+                horizontal_spacing = 0,
                 children =
                 {
                     {
-                        type = "flow",
-                        name = "fav_bar_widget",
-                        save_as = "fav_bar_widget",
-                        direction = "horizontal",
-                        horizontally_stretchable = true,
-                        vertically_stretchable = true,
-                        minimal_width = 200,
-                        minimal_height = 80,
-                        padding = 0,
-                        horizontal_spacing = 0,
-                        children =
-                        {
-                            {
 
-                                type = "button",
-                                name = "buttons.toggle.favorite_mode",
-                                save_as = "buttons.toggle_favorite_mode",
-                                style = PREFIX .. "toggle_favorite_mode_button",
-                                handlers = "fav_bar.buttons.toggle_favorite_mode",
-                                caption = "",
-                            },
-                            {
-                                type = "frame",
-                                style = "fav_bar_row",
-                                name = "fav_bar_row",
-                                direction = "horizontal",
-                                children =
-                                    child_buttons
-                            }
-                        }
+                        type = "button",
+                        name = "buttons.toggle.favorite_mode",
+                        save_as = "buttons.toggle_favorite_mode",
+                        style = PREFIX .. "toggle_favorite_mode_button",
+                        handlers = "fav_bar.buttons.toggle_favorite_mode",
+                        caption = "",
+                    },
+                    {
+                        type = "frame",
+                        style = "fav_bar_row",
+                        name = "fav_bar_row",
+                        direction = "horizontal",
+                        children =
+                            child_buttons
                     }
                 }
             }
-        end
-    end
+        }
+    }
 end
 
 fav_bar_GUI.handlers = {
@@ -236,7 +237,7 @@ fav_bar_GUI.handlers = {
             --event.alt/control/shift
             fave_action = {
                 on_gui_click = function(event)
-                    local player = game.players[event.player_index]
+                    local player = game.get_player(event.player_index)
                     if player then
                         local index_fave = nil
                         local idx_num = event.element.number
@@ -253,7 +254,7 @@ fav_bar_GUI.handlers = {
                             if event.element.tooltip ~= "" then
                                 local position = nil
                                 local og_position = player.position
-                                local og_surface_index = player.surface_index
+                                local og_surface_index = player.physical_surface_index
                                 local all_faves = cache.get_player_favorites(player)
 
                                 if all_faves and next(all_faves) then
@@ -264,11 +265,7 @@ fav_bar_GUI.handlers = {
                                 end
                                 if position == nil then return end
 
-                                -- TODO assign a player setting
-                                local radius = 10
-
-                                local tele_pos, msg = map_tag_utils.teleport_player_to_closest_position(player, position,
-                                    radius)
+                                local tele_pos, msg = map_tag_utils.teleport_player_to_closest_position(player, position)
                                 if tele_pos then
                                     game.print(string.format("%s teleported to x: %d, y: %d", player.name, tele_pos.x,
                                         tele_pos.y))
@@ -290,7 +287,7 @@ fav_bar_GUI.handlers = {
                             -- game.print("you RIGHT clicked a fave button")
 
                             index_fave = storage.qmtt.GUI.fav_bar.players[player.index]
-                                .fave_places[player.surface_index][idx_num]._pos_idx
+                                .fave_places[player.physical_surface_index][idx_num]._pos_idx
 
                             storage.qmtt.GUI.edit_fave.players[player.index].selected_fave = index_fave
 
@@ -307,7 +304,7 @@ fav_bar_GUI.handlers = {
                 on_gui_click = function(event)
                     if event.button == 2 then
                         if game then
-                            local player = game.players[event.player_index]
+                            local player = game.get_player(event.player_index)
                             if player then
                                 if fav_bar_GUI.buttons_on(player) then
                                     fav_bar_GUI.buttons_hide(player)
@@ -324,7 +321,7 @@ fav_bar_GUI.handlers = {
 }
 
 function fav_bar_GUI.on_player_removed(player_index)
-    local player = game.players[player_index]
+    local player = game.get_player(player_index)
     if player then
         fav_bar_GUI.close(player)
     end
