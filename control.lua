@@ -15,7 +15,10 @@ script.on_init(function()
   log(serpent.block("on_init"))
   gui.init()
   gui.build_lookup_tables()
-  cache.init()
+
+  for _, player in pairs(game.players) do
+    cache.init_player(player)
+  end
 end)
 
 script.on_load(function()
@@ -29,7 +32,7 @@ script.on_event(defines.events.on_player_created, function(event)
     local player = game.get_player(event.player_index)
     if not player then return end
 
-    cache.init_player(player)
+    control.initialize(player)
   end
 end)
 
@@ -52,7 +55,8 @@ script.on_configuration_changed(function(event)
     else
       if game then
         for _, player in pairs(game.players) do
-          cache.init_player(player)
+          --cache.init_player(player)
+          control.initialize(player)
         end
       end
     end
@@ -99,34 +103,13 @@ script.on_event(defines.events.on_player_changed_force, function(event)
   pcall(cache.reset_surface_chart_tags, player)
 end)
 
-local __initialized = false
--- Perform initialization tasks here
-local function initialize()
-  log(serpent.block("initialize"))
-
-  for _, player in pairs(game.players) do
-    if player then
-      control.check_favorites_on_off_change(player)
-
-      -- Helps to place the gui at the end of the guis
-      log(serpent.block("player_index: " .. player.index))
-      log(serpent.block(player.name))
-      fav_bar_GUI.update_ui(player)
-    end
-  end
-  __initialized = true
-end
-
 -- Tick events
 local RESPONSIVE_TICKS = 30 * 1
 -- local TICKS_PER_MINUTE = 60 * 60 * 1
 -- local TICKS_PER_FIVE_MINUTES = 60 * 60 * 5 -- 18,000 ticks
 
 script.on_nth_tick(RESPONSIVE_TICKS, function(event)
-  if game and not __initialized then
-    log(serpent.block("call_initialize"))
-    initialize()
-  end
+
 end)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
@@ -194,6 +177,19 @@ gui.register_handlers()
 
 
 control = {}
+
+function control.initialize(player)
+  if not player then return end
+
+  cache.init_player(player)
+
+  control.check_favorites_on_off_change(player)
+
+  -- Helps to place the gui at the end of the guis
+  log(serpent.block("player_index: " .. player.index))
+  log(serpent.block(player.name))
+  fav_bar_GUI.update_ui(player)
+end
 
 function control.player_leaves_game(player_index)
   add_tag_GUI.on_player_removed(player_index)

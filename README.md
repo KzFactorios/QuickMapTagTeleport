@@ -40,13 +40,13 @@ Simply **right-click** and create your tag. That's it!
 - So open up the command console by pressing the tilde (~) key and type the following: 
 - (This pre-supposes that the favorite in question lives in the #3 slot)
 - /qmtt_delete_by_fave_index 3
-- You may have to this twice if you rarely use commands - the console will let you know
+- You may have to do this twice if you rarely use commands - the console will let you know
 -----  
 - Usage: /qmtt_delete_by_pos_idx <pos_idx>
 - pos_idx refers to the position of the tag and is in the format xxx.yyy
 - You have to be very careful to get the coordinates exactly correct, but they should be provided for you if you right-click on the tag. Use the x and y values, including any minus signs and separate them with a dot.
 - ex. I right click on a tag and it shows me the coordinates x: -44, y: -24
-- So I would open up the command console by pressing the tilde (~) key and type the following:
+- So again, open up the command console by pressing the tilde (~) key and type the following:
 - /qmtt_delete_by_pos_idx -44.-24
 -----  
 - I will continue to work on these issues, but I figured I'd give you a way to fix them yourselves. 

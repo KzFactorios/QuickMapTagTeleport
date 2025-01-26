@@ -2,11 +2,10 @@
 Version: 0.2.5
 Date: 2025-01-25
 
-  Fixes:
+  Updates:
     - Multiplayer loading errors in cache.lua
     - Refactor game.players[idx] -> game.get_player(idx), player.surface_index -> player.physical_surface_index
-    - Refactor, refactor, refactor
-    - Reverse changelog entries
+    - Big thanks to PennyJim and justarandomgeek for their help and guidance!
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.4
 Date: 2025-01-21

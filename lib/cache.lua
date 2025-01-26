@@ -45,7 +45,10 @@ function cache.init_player(player)
         cache.init()
     end
 
-    if not player then return end
+    if not player then
+        log("no player in init player")
+        return
+    end
 
     local player_index = player.index
 
@@ -86,11 +89,11 @@ function cache.init_player(player)
         storage.qmtt.GUI.edit_fave.players[player_index] = {}
     end
     if not storage.qmtt.GUI.edit_fave.players[player_index].selected_fave then
-        storage.qmtt.GUI.edit_fave.players[player_index].selected_fave = ''     -- matches pos_idx
+        storage.qmtt.GUI.edit_fave.players[player_index].selected_fave = '' -- matches pos_idx
     end
 
-     -- cleanup/transform legacy structures
-     if storage.qmtt.player_data[player_index].registered_events then
+    -- cleanup/transform legacy structures
+    if storage.qmtt.player_data[player_index].registered_events then
         storage.qmtt.player_data[player_index].registered_events = nil
     end
     -- end legacy cleanup
@@ -302,7 +305,7 @@ function cache.get_player_favorites(player)
         end
         storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.physical_surface_index] = places
     end
-    
+
     return places]]
     return storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.physical_surface_index]
 end
