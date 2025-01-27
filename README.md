@@ -49,10 +49,7 @@ Simply **right-click** and create your tag. That's it!
 - So again, open up the command console by pressing the tilde (~) key and type the following:
 - /qmtt_delete_by_pos_idx -44.-24
 -----  
-- I will continue to work on these issues, but I figured I'd give you a way to fix them yourselves. 
-
-### NOT YET TESTED FOR MULTIPLAYER!
-- although the only issue you may run into is uninstalling and I plan to conquer this issue soon.
+- I will continue to work on these issues, but I figured I'd give you a way to fix them yourselves.
 
 
 #### Based on the hard work of [Quick Map Tag](https://mods.factorio.com/mod/QuickMapTag) by **[templar4522](https://mods.factorio.com/user/templar4522)** and [Tag To Teleport](https://mods.factorio.com/mod/TagToTeleport) by **[darkfrei](https://mods.factorio.com/user/darkfrei)** --

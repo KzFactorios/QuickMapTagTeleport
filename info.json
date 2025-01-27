@@ -7,8 +7,8 @@
   "created": "2024-11-08",
   "factorio_version": "2.0",
   "dependencies": [
-    "base >= 2.0.12",
-    "flib >= 0.16.0"
+    "base >= 2.0.32",
+    "flib >= 0.16.2"
   ],
   "description": "And you may find yourself in another part of the world...\n\nNow with Favorite/Hotkey Locations!\n\nTired of walking and running your game-time-life away? Can't fathom driving a car around your map, avoiding cliffs and lakes? Do you just want to get there already?\n\nWhat if you could simply open a dialog by **right-clicking** on the map view and teleport immediately to that location?\n\nMaybe you have been stymied by having to go through multiple steps just to create a map tag? Now you can **right-click** and create your tag. That's it!"
 }

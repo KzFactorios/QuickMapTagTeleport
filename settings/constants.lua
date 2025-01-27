@@ -1,7 +1,6 @@
 local constants = {}
 
 constants.PREFIX = "quick-map-tag_"
-
 local PRE = constants.PREFIX
 
 constants.events = {

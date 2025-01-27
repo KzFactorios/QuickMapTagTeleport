@@ -93,7 +93,7 @@ function cache.init_player(player)
     end
 
     -- cleanup/transform legacy structures
-    if storage.qmtt.player_data[player_index].registered_events then
+    if storage.qmtt.player_data[player_index].registered_events ~= nil then
         storage.qmtt.player_data[player_index].registered_events = nil
     end
     -- end legacy cleanup
@@ -101,6 +101,8 @@ end
 
 --- Removes a player from any faved_by_player lists in the extended_tags
 function cache.remove_player_from_qmtt_faved_by_players(player)
+    if not player then return end
+
     local tags = cache.get_extended_tags(player)
     local player_index = player.index
     if tags ~= nil then
@@ -112,45 +114,47 @@ end
 
 --- Remove unnecessary player favorites data from storage per player
 function cache.unfavorite_the_player_experience(player)
-    if player then
-        control.close_guis(player)
+    if not player then return end
 
-        storage.qmtt.player_data.show_fave_bar_buttons = false -- reset
-        storage.qmtt.GUI.fav_bar.players[player.index].fave_places = nil
-        cache.set_player_selected_fave(player, "")
-        cache.remove_player_from_qmtt_faved_by_players(player)
+    control.close_guis(player)
 
-        control.update_uis(player)
-    end
+    storage.qmtt.player_data.show_fave_bar_buttons = false -- reset
+    storage.qmtt.GUI.fav_bar.players[player.index].fave_places = nil
+    cache.set_player_selected_fave(player, "")
+    cache.remove_player_from_qmtt_faved_by_players(player)
+
+    control.update_uis(player)
 end
 
 --- Build/init the proper storage structure for player favorites
 function cache.favorite_the_player_experience(player)
-    if player then
-        control.close_guis(player)
+    if not player then return end
 
-        storage.qmtt.player_data.show_fave_bar_buttons = true -- reset
-        storage.qmtt.GUI.fav_bar.players[player.index].fave_places = {}
-        storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.physical_surface_index] = {}
-        -- TODO make 10 a setting
-        for i = 1, 10 do
-            storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.physical_surface_index][i] = {}
-        end
-        cache.set_player_selected_fave(player, "")
-        cache.remove_player_from_qmtt_faved_by_players(player)
+    control.close_guis(player)
 
-        control.update_uis(player)
+    storage.qmtt.player_data.show_fave_bar_buttons = true -- reset
+    storage.qmtt.GUI.fav_bar.players[player.index].fave_places = {}
+    storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.physical_surface_index] = {}
+    -- TODO make 10 a setting
+    for i = 1, 10 do
+        storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.physical_surface_index][i] = {}
     end
+    cache.set_player_selected_fave(player, "")
+    cache.remove_player_from_qmtt_faved_by_players(player)
+
+    control.update_uis(player)
 end
 
 function cache.reset_surface_chart_tags(player)
-    if player then
-        storage.qmtt.surfaces[player.physical_surface_index].chart_tags = nil
-    end
+    if not player then return end
+
+    storage.qmtt.surfaces[player.physical_surface_index].chart_tags = nil
 end
 
 function cache.remove_invalid_tags(player, tag_list)
     local list = {}
+    if not player then return list end
+
     if tag_list ~= nil then
         for _, tag in pairs(tag_list) do
             if tag.valid then
@@ -168,27 +172,25 @@ function cache.remove_invalid_tags(player, tag_list)
 end
 
 function cache.get_chart_tags_from_cache(player)
-    if player then
-        local surf = storage.qmtt.surfaces[player.physical_surface_index]
-        if surf == nil then
-            cache.init_player(player)
-            surf = storage.qmtt.surfaces[player.physical_surface_index]
-        end
-        if not surf.chart_tags or #surf.chart_tags == 0 then
-            surf.chart_tags = cache.remove_invalid_tags(player,
-                player.force.find_chart_tags(player.physical_surface_index))
-        end
-        return surf.chart_tags
+    if not player then return nil end
+
+    local surf = storage.qmtt.surfaces[player.physical_surface_index]
+    if surf == nil then
+        cache.init_player(player)
+        surf = storage.qmtt.surfaces[player.physical_surface_index]
     end
-    return nil
+    if not surf.chart_tags or #surf.chart_tags == 0 then
+        surf.chart_tags = cache.remove_invalid_tags(player,
+            player.force.find_chart_tags(player.physical_surface_index))
+    end
+    return surf.chart_tags or nil
 end
 
 --- Returns the qmtt/extended_tags for a player's physical_surface_index
 function cache.get_extended_tags(player)
-    if player then
-        return storage.qmtt.surfaces[player.physical_surface_index].extended_tags
-    end
-    return nil
+    if not player then return nil end
+
+    return storage.qmtt.surfaces[player.physical_surface_index].extended_tags
 end
 
 function cache.get_matching_qmtt_by_position(surface_index, position)
@@ -254,15 +256,15 @@ end
 
 --- Returns the player's selected favorite index from the player's faves
 function cache.get_player_selected_fave_idx(player)
-    if player then
-        local sel_fave = cache.get_player_selected_fave_pos_idx(player)
-        if sel_fave and sel_fave ~= '' then
-            local faves = cache.get_player_favorites(player)
-            if faves then
-                for i = 1, #faves do
-                    if faves[i]._pos_idx == sel_fave then
-                        return i
-                    end
+    if not player then return 0 end
+
+    local sel_fave = cache.get_player_selected_fave_pos_idx(player)
+    if sel_fave and sel_fave ~= '' then
+        local faves = cache.get_player_favorites(player)
+        if faves then
+            for i = 1, #faves do
+                if faves[i]._pos_idx == sel_fave then
+                    return i
                 end
             end
         end
@@ -314,29 +316,30 @@ end
 --- @param player LuaPlayer
 function cache.get_available_fave_slots(player)
     local count = 0
-    if player then
-        local fave_places = cache.get_player_favorites(player)
-        if fave_places then
-            for i = 1, #fave_places do
-                local place = fave_places[i]
-                if place == nil or (type(place) == "table" and next(place) == nil) or place._pos_idx == '' then
-                    count = count + 1
-                end
+    -- TODO make 10 a var/setting
+    if not player then return 10 end
+
+    local fave_places = cache.get_player_favorites(player)
+    if fave_places then
+        for i = 1, #fave_places do
+            local place = fave_places[i]
+            if place == nil or (type(place) == "table" and next(place) == nil) or place._pos_idx == '' then
+                count = count + 1
             end
         end
     end
-    -- TODO make 10 a var/settings
+    -- TODO make 10 a var/setting
     return 10 - count
 end
 
 function cache.get_player_favorite_by_pos_idx(player, pos)
-    if player then
-        local faves = cache.get_player_favorites(player)
-        if faves then
-            for _, v in pairs(faves) do
-                if v._pos_idx == pos then
-                    return v
-                end
+    if not player then return nil end
+
+    local faves = cache.get_player_favorites(player)
+    if faves then
+        for _, v in pairs(faves) do
+            if v._pos_idx == pos then
+                return v
             end
         end
     end
@@ -346,20 +349,20 @@ end
 --- Used when a player exits the mod
 function cache.remove_player_data(player_index)
     local player = game.get_player(player_index)
-    if player then
-        -- make sure each gui is destroyed
-        if storage.qmtt.player_data[player_index] then
-            storage.qmtt.player_data[player_index] = nil
-        end
-        if storage.qmtt.GUI.fav_bar.players[player_index] then
-            storage.qmtt.GUI.fav_bar.players[player_index] = nil
-        end
-        if storage.qmtt.GUI.AddTag.players[player_index] then
-            storage.qmtt.GUI.AddTag.players[player_index] = nil
-        end
-        if storage.qmtt.GUI.edit_fave.players[player_index] then
-            storage.qmtt.GUI.edit_fave.players[player_index] = nil
-        end
+    if not player then return end
+
+    -- make sure each gui is destroyed
+    if storage.qmtt.player_data[player_index] then
+        storage.qmtt.player_data[player_index] = nil
+    end
+    if storage.qmtt.GUI.fav_bar.players[player_index] then
+        storage.qmtt.GUI.fav_bar.players[player_index] = nil
+    end
+    if storage.qmtt.GUI.AddTag.players[player_index] then
+        storage.qmtt.GUI.AddTag.players[player_index] = nil
+    end
+    if storage.qmtt.GUI.edit_fave.players[player_index] then
+        storage.qmtt.GUI.edit_fave.players[player_index] = nil
     end
 
     for _, surface_idx in pairs(storage.qmtt.surfaces) do
@@ -376,75 +379,75 @@ end
 --- haven't incorporated this yet, but it may become a command should someone need it
 --- TODO come up with a better name
 function cache.fix_zero_tags_and_hotkey_locked(player)
-    if player then
-        local changed = false
-        local all_tags = cache.get_chart_tags_from_cache(player)
-        if all_tags ~= nil then
-            for _, v in ipairs(all_tags) do
-                if tostring(v.position.x) == "-0" then
-                    v.position.x = 0
-                    changed = true
+    if not player then return end
+
+    local changed = false
+    local all_tags = cache.get_chart_tags_from_cache(player)
+    if all_tags ~= nil then
+        for _, v in ipairs(all_tags) do
+            if tostring(v.position.x) == "-0" then
+                v.position.x = 0
+                changed = true
+            end
+            if tostring(v.position.y) == "-0" then
+                v.position.x = 0
+                changed = true
+            end
+        end
+    end
+    if changed then
+        cache.reset_surface_chart_tags(player)
+    end
+
+    -- do qmtts
+    local all_qmtts = cache.get_extended_tags(player)
+    if all_qmtts ~= nil then
+        for _, v in ipairs(all_qmtts) do
+            local q_change = false
+            if tostring(v.position.x) == "-0" then
+                v.position.x = 0
+                q_change = true
+            end
+            if tostring(v.position.y) == "-0" then
+                v.position.x = 0
+                q_change = true
+            end
+            if q_change then
+                v.idx = wutils.format_idx_from_position(v.position)
+            end
+        end
+    end
+
+    -- loop through player faves and set hotkey_locked to nil
+    local p_faves = cache.get_player_favorites(player)
+    local p_change = false
+    if p_faves ~= nil then
+        for _, v in ipairs(p_faves) do
+            if wutils.tableContainsKey(v, "hotkey_locked") then
+                v["hotkey_locked"] = nil
+            end
+
+            -- update idx if either part of pos is -0
+            local f_change = false
+            local _pos = wutils.decode_position_from_pos_idx(v._pos_idx)
+            if _pos then
+                if tostring(_pos.x) == "-0" then
+                    _pos.x = 0
+                    f_change = true
                 end
-                if tostring(v.position.y) == "-0" then
-                    v.position.x = 0
-                    changed = true
+                if tostring(_pos.y) == "-0" then
+                    _pos.x = 0
+                    f_change = true
+                end
+                if f_change then
+                    v._pos_idx = wutils.format_idx_from_position(_pos)
+                    p_change = true
                 end
             end
         end
-        if changed then
-            cache.reset_surface_chart_tags(player)
-        end
-
-        -- do qmtts
-        local all_qmtts = cache.get_extended_tags(player)
-        if all_qmtts ~= nil then
-            for _, v in ipairs(all_qmtts) do
-                local q_change = false
-                if tostring(v.position.x) == "-0" then
-                    v.position.x = 0
-                    q_change = true
-                end
-                if tostring(v.position.y) == "-0" then
-                    v.position.x = 0
-                    q_change = true
-                end
-                if q_change then
-                    v.idx = wutils.format_idx_from_position(v.position)
-                end
-            end
-        end
-
-        -- loop through player faves and set hotkey_locked to nil
-        local p_faves = cache.get_player_favorites(player)
-        local p_change = false
-        if p_faves ~= nil then
-            for _, v in ipairs(p_faves) do
-                if wutils.tableContainsKey(v, "hotkey_locked") then
-                    v["hotkey_locked"] = nil
-                end
-
-                -- update idx if either part of pos is -0
-                local f_change = false
-                local _pos = wutils.decode_position_from_pos_idx(v._pos_idx)
-                if _pos then
-                    if tostring(_pos.x) == "-0" then
-                        _pos.x = 0
-                        f_change = true
-                    end
-                    if tostring(_pos.y) == "-0" then
-                        _pos.x = 0
-                        f_change = true
-                    end
-                    if f_change then
-                        v._pos_idx = wutils.format_idx_from_position(_pos)
-                        p_change = true
-                    end
-                end
-            end
-        end
-        if p_change then
-            cache.set_player_selected_fave(player, "")
-        end
+    end
+    if p_change then
+        cache.set_player_selected_fave(player, "")
     end
 end
 

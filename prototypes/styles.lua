@@ -34,7 +34,6 @@ gui_style[PREFIX .. "section_divider"] = {
 
 gui_style["row_container"] = {
   type = "frame_style",
-  --parent = "inside_shallow_frame_with_padding",
   bottom_padding = 8,
 }
 
@@ -62,12 +61,6 @@ gui_style["fav_bar_gui"] = {
   horizontal_spacing = 0,
   vertical_spacing = 0,
 }
-
---[[gui_style["fav_bar_label"] = {
-  type = "label_style",
-  parent = "label",
-  bottom_margin = 12,
-}]]
 
 gui_style["fav_bar_slot_button_in_shallow_frame"] = {
   type = "button_style",
@@ -124,7 +117,6 @@ gui_style[PREFIX .. "toggle_favorite_mode_button"] = {
 gui_style["light_blue_button_style"] = {
   type = "button_style",
   parent = "slot_button",
-  --top_margin = 8,
   default_font_color = { 1, 1, 1 },
   font = "custom-tiny-font",
 

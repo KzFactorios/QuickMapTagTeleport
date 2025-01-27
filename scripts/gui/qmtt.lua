@@ -1,8 +1,8 @@
 --OK this is not a gui but it just seemed appropriate to put here
-local table     = require("__flib__.table")
-local wutils    = require("wct_utils")
-local cache     = require("lib/cache")
-local qmtt      = {}
+local table  = require("__flib__.table")
+local wutils = require("wct_utils")
+local cache  = require("lib/cache")
+local qmtt   = {}
 
 --[[
 idx = "",
@@ -11,10 +11,6 @@ faved_by_players = {},
 fave_displaytext = "",
 fave_description = "",
 ]]
-local next = next
-
-qmtt.init_QMTT = function()
-end
 
 function qmtt.create_new_qmtt(pos_idx, surface_id, position, player_index, display_text, description)
     return {
@@ -29,22 +25,6 @@ end
 
 function qmtt.reset_chart_tags(surface_id)
     storage.qmtt.surfaces[surface_id].chart_tags = nil
-end
-
--- leaving here for completeness, but not sure
--- when to use it
-function qmtt.reset_extended_tags(surface_id)
-    storage.qmtt.surfaces[surface_id].extended_tags = nil
-end
-
---TODO flesh out
-function qmtt.modify_tag(surface_id, chart_tag, new_fave_display_text, new_description)
-    -- Event handler might do most of the heavy lifting
-    local changed = false
-    local pos_idx = wutils.format_idx_from_position(chart_tag.position)
-    local found_qmtt = qmtt.get_matching_qmtt_by_pos_idx(surface_id, pos_idx)
-    local _qmtt = {}
-    qmtt.reset_chart_tags(surface_id) -- check to see if this is in the event handler in control.lua
 end
 
 function qmtt.get_matching_chart_tag_by_pos_idx(surface_id, pos_idx)
@@ -65,66 +45,42 @@ function qmtt.get_matching_qmtt_by_pos_idx(surface_id, pos_idx)
     return nil
 end
 
-function qmtt.on_configuration_changed(event)
-    -- destroy any guis
-    -- qmtt.qmtt_load()
-end
-
--- handle events from the stock edit controlm
--- not sure if the tag_added will throw?
--- going to try to make it not happen
-script.on_event(defines.events.on_chart_tag_added, function(event)
-    --qmtt.reset_chart_tags()
-    if event.player_index then
-        --[[local editor = game.get_player(event.player_index).gui.screen["gui-tag-edit"]
-        if editor then
-            local qtag = qmtt.add_new_tag(event.tag)
-        end]]
-    end
-end)
-
 -- handle changes from the stock tag editor
 -- see if we can throw this only when the gui-tag-edit control makes changes
 --TODO does this throw on add tag changes?
 script.on_event(defines.events.on_chart_tag_modified, function(event)
     if game and event.player_index then
         local player = game.get_player(event.player_index)
-        if player then
-            local old_pos = wutils.format_idx_from_position(event.old_position)
+        if not player then return end
 
-            -- update matching chart_tag
-            local stored_tag =
-                wutils.find_element_by_position(cache.get_chart_tags_from_cache(player),
-                    "position",
-                    event.old_position)
-            if stored_tag then
-                stored_tag = table.deep_copy(event.tag)
-            end
+        local old_pos = wutils.format_idx_from_position(event.old_position)
 
-            -- update matching qmtt
-            if not storage.qmtt or not storage.qmtt.ext_tags then
-                qmtt.init_QMTT()
-            end
-            local stored_qmtt =
-                wutils.find_element_by_key_and_value(storage.qmtt.ext_tags, "idx", old_pos)
-            if stored_qmtt then
-                stored_qmtt.idx = wutils.format_idx_from_position(event.tag.position)
-                stored_qmtt.position.x = event.tag.position.x
-                stored_qmtt.position.y = event.tag.position.y
-            else
-                stored_qmtt = {
-                    idx = wutils.format_idx_from_position(event.tag.position),
-                    position = event.tag.position,
-                    faved_by_players = {},
-                    fave_displaytext = "",
-                    fave_description = "",
-                }
-            end
-
-            -- TODO update favorite?
-
-            qmtt.reset_chart_tags(player.physical_surface_index)
+        -- update matching chart_tag
+        local stored_tag =
+            wutils.find_element_by_position(cache.get_chart_tags_from_cache(player),
+                "position",
+                event.old_position)
+        if stored_tag then
+            stored_tag = table.deep_copy(event.tag)
         end
+
+        local stored_qmtt =
+            wutils.find_element_by_key_and_value(storage.qmtt.ext_tags, "idx", old_pos)
+        if stored_qmtt then
+            stored_qmtt.idx = wutils.format_idx_from_position(event.tag.position)
+            stored_qmtt.position.x = event.tag.position.x
+            stored_qmtt.position.y = event.tag.position.y
+        else
+            stored_qmtt = {
+                idx = wutils.format_idx_from_position(event.tag.position),
+                position = event.tag.position,
+                faved_by_players = {},
+                fave_displaytext = "",
+                fave_description = "",
+            }
+        end
+
+        qmtt.reset_chart_tags(player.physical_surface_index)
     end
 end)
 
@@ -132,22 +88,11 @@ end)
 function qmtt.handle_chart_tag_removal(event)
     if game and event.player_index then
         local player = game.get_player(event.player_index)
-        if player then
-            control.remove_tag_at_position(player, event.tag.position)
-        end
+        if not player then return end
+
+        control.remove_tag_at_position(player, event.tag.position)
     end
 end
-
---- Handles when a tag is added from the stock editor
---- Nothing to do, handled elsewhere in other flows
---[[function qmtt.handle_chart_tag_added(event)
-    if game and event.player_index then
-        local player = game.get_player(event.player_index)
-        if player then
-            -- create a qmtt and an extended tag
-        end
-    end
-end]]
 
 function qmtt.handle_chart_tag_modified(event)
     -- only handle stock editor changes - event.mod_name == nil
@@ -201,25 +146,25 @@ function qmtt.handle_chart_tag_modified(event)
 end
 
 function qmtt.remove_chart_tag_at_position(player, pos)
-    if player then
-        local _chart_tags = storage.qmtt.surfaces[player.physical_surface_index].chart_tags
-        if _chart_tags and #_chart_tags > 0 then
-            local idx = wutils.find_element_idx_by_position(_chart_tags, "position", pos)
-            if idx and idx > 0 then
-                _chart_tags[idx] = nil
-            end
+    if not player then return end
+
+    local _chart_tags = storage.qmtt.surfaces[player.physical_surface_index].chart_tags
+    if _chart_tags and #_chart_tags > 0 then
+        local idx = wutils.find_element_idx_by_position(_chart_tags, "position", pos)
+        if idx and idx > 0 then
+            _chart_tags[idx] = nil
         end
     end
 end
 
 function qmtt.remove_ext_tag_at_position(player, pos)
-    if player then
-        local _ext_tags = storage.qmtt.surfaces[player.physical_surface_index].extended_tags
-        if _ext_tags and #_ext_tags > 0 then
-            local idx = wutils.find_element_idx_by_position(_ext_tags, "position", pos)
-            if idx and idx > 0 then
-                _ext_tags[idx] = nil
-            end
+    if not player then return end
+
+    local _ext_tags = storage.qmtt.surfaces[player.physical_surface_index].extended_tags
+    if _ext_tags and #_ext_tags > 0 then
+        local idx = wutils.find_element_idx_by_position(_ext_tags, "position", pos)
+        if idx and idx > 0 then
+            _ext_tags[idx] = nil
         end
     end
 end
@@ -235,12 +180,12 @@ function qmtt.clear_matching_selected_fave(pos_idx)
 end
 
 function qmtt.clear_matching_fave_places(player, pos_idx)
-    if player then
-        local surfs = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.physical_surface_index]
-        local fave_idx = wutils.get_element_index(surfs, "_pos_idx", pos_idx)
-        if fave_idx > 0 and fave_idx <= #surfs then
-            surfs[fave_idx] = {}
-        end
+    if not player then return end
+
+    local surfs = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.physical_surface_index]
+    local fave_idx = wutils.get_element_index(surfs, "_pos_idx", pos_idx)
+    if fave_idx > 0 and fave_idx <= #surfs then
+        surfs[fave_idx] = {}
     end
 end
 

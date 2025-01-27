@@ -1,11 +1,9 @@
-local gui              = require("lib/gui")
-local add_tag_settings = require("settings/add_tag_settings")
-local map_tag_utils    = require("utils/map_tag_utils")
-local wutils           = require("wct_utils")
-local cache            = require("lib/cache")
-
-local constants        = require("settings/constants")
-local PREFIX           = constants.PREFIX
+local map_tag_utils = require("utils/map_tag_utils")
+local constants     = require("settings/constants")
+local wutils        = require("wct_utils")
+local cache         = require("lib/cache")
+local gui           = require("lib/gui")
+local PREFIX        = constants.PREFIX
 
 local function add_tag_frame_template(player, formatted_position, text, icon, _qmtt, element_favorite)
   local container_elements = {}
@@ -38,7 +36,6 @@ local function add_tag_frame_template(player, formatted_position, text, icon, _q
       name = "checkbox-favorite",
       save_as = "fields.favorite",
       state = element_favorite,
-      --handlers = "add_tag.fields.favorite"
     })
   end
 
@@ -52,7 +49,6 @@ local function add_tag_frame_template(player, formatted_position, text, icon, _q
     --mouse_button_filter={"left"},
     handlers = "add_tag.fields.icon"
   })
-
 
   return
   {
@@ -81,7 +77,6 @@ local function add_tag_frame_template(player, formatted_position, text, icon, _q
           },
         }
       },
-
 
       {
         type = "frame",
@@ -167,16 +162,13 @@ end
 
 local add_tag_GUI = {}
 
-function add_tag_GUI.on_player_created(event)
-end
-
 --- Close the gui and remove player refs to AddTag
 function add_tag_GUI.on_player_removed(player_index)
   local player = game.get_player(player_index)
-  if player then
-    add_tag_GUI.close(player)
-    storage.qmtt.GUI.AddTag.players[player_index] = nil
-  end
+  if not player then return end
+
+  add_tag_GUI.close(player)
+  storage.qmtt.GUI.AddTag.players[player_index] = nil
 end
 
 -- Handle confirmation (Enter key)
@@ -187,9 +179,9 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
 end)
 
 function add_tag_GUI.is_open(player)
-  if player then
-    return player.gui.screen["gui-tag-edit"] ~= nil
-  end
+  if not player then return end
+
+  return player.gui.screen["gui-tag-edit"] ~= nil
 end
 
 function add_tag_GUI.format_position_text(position)
@@ -199,65 +191,61 @@ end
 add_tag_GUI.gui_position = {}
 
 function add_tag_GUI.open(player, position_to_open_from)
+  if not player or not position_to_open_from or position_to_open_from == {} then return end
+
+  control.close_guis(player)
+  -- Don't allow the interface on a space platform
+  if map_tag_utils.is_on_space_platform(player) then return end
+
   add_tag_GUI.gui_position = position_to_open_from
 
-  if player and add_tag_GUI.gui_position and add_tag_GUI.gui_position ~= {} then
-    control.close_guis(player)
+  local posTxt = add_tag_GUI.format_position_text(add_tag_GUI.gui_position)
 
-    -- Don't allow the interface on a space platform
-    if map_tag_utils.is_on_space_platform(player) then return end
+  -- find tags with position =
+  local _tags = cache.get_chart_tags_from_cache(player)
+  local _tag = wutils.find_element_by_position(_tags, "position", add_tag_GUI.gui_position)
+  local _qmtt = cache.get_matching_qmtt_by_position(player.physical_surface_index, add_tag_GUI.gui_position)
+  local new_tag_text = ""
+  local new_tag_icon = { type = "virtual", name = "" }
 
-    local posTxt = add_tag_GUI.format_position_text(add_tag_GUI.gui_position)
-
-    -- find tags with position =
-    local _tags = cache.get_chart_tags_from_cache(player)
-    local _tag = wutils.find_element_by_position(_tags, "position", add_tag_GUI.gui_position)
-
-    local _qmtt = cache.get_matching_qmtt_by_position(player.physical_surface_index, add_tag_GUI.gui_position)
-
-    local new_tag_text = ""
-    local new_tag_icon = { type = "virtual", name = "" }
-
-    if _qmtt == nil and _tag ~= nil then
-      _qmtt = {
-        idx = add_tag_GUI.format_position_text(_tag.position),
-        position = _tag.position,
-        faved_by_players = {},
-        fave_display_text = "",
-        fave_description = "",
-      }
-      new_tag_text = _tag.text
-      new_tag_icon = _tag.icon
-    elseif _qmtt == nil and _tag == nil then
-      _qmtt = {
-        idx = add_tag_GUI.format_position_text(add_tag_GUI.gui_position),
-        position = add_tag_GUI.gui_position,
-        faved_by_players = {},
-        fave_display_text = "",
-        fave_description = "",
-      }
-    elseif _qmtt ~= nil and _tag ~= nil then
-      new_tag_text = _tag.text
-      new_tag_icon = _tag.icon
-    end
-
-    local element_favorite = cache.extended_tag_is_player_favorite(_qmtt, player.index)
-    local elements = gui.build(player.gui.screen,
-      { add_tag_frame_template(player, posTxt, new_tag_text, new_tag_icon, _qmtt, element_favorite) })
-
-    elements.root_frame.force_auto_center()
-    elements.fields.text.focus()
-
-    elements.buttons.draggable_space_header.drag_target = elements.root_frame
-    elements.buttons.draggable_space_footer.drag_target = elements.root_frame
-
-    --storage.qmtt.GUI.AddTag.players[player.index].position.x = position.x
-    --storage.qmtt.GUI.AddTag.players[player.index].position.y = position.y
+  if _qmtt == nil and _tag ~= nil then
+    _qmtt = {
+      idx = add_tag_GUI.format_position_text(_tag.position),
+      position = _tag.position,
+      faved_by_players = {},
+      fave_display_text = "",
+      fave_description = "",
+    }
+    new_tag_text = _tag.text
+    new_tag_icon = _tag.icon
+  elseif _qmtt == nil and _tag == nil then
+    _qmtt = {
+      idx = add_tag_GUI.format_position_text(add_tag_GUI.gui_position),
+      position = add_tag_GUI.gui_position,
+      faved_by_players = {},
+      fave_display_text = "",
+      fave_description = "",
+    }
+  elseif _qmtt ~= nil and _tag ~= nil then
+    new_tag_text = _tag.text
+    new_tag_icon = _tag.icon
   end
+
+  local element_favorite = cache.extended_tag_is_player_favorite(_qmtt, player.index)
+  local elements = gui.build(player.gui.screen,
+    { add_tag_frame_template(player, posTxt, new_tag_text, new_tag_icon, _qmtt, element_favorite) })
+
+  elements.root_frame.force_auto_center()
+  elements.fields.text.focus()
+
+  elements.buttons.draggable_space_header.drag_target = elements.root_frame
+  elements.buttons.draggable_space_footer.drag_target = elements.root_frame
 end
 
 function add_tag_GUI.close(player)
-  if player and add_tag_GUI.is_open(player) then
+  if not player then return end
+
+  if add_tag_GUI.is_open(player) then
     player.gui.screen["gui-tag-edit"].destroy()
   end
 end
@@ -270,14 +258,14 @@ function add_tag_GUI.get_position()
 end
 
 function add_tag_GUI.get_text(player)
-  if player then
-    if add_tag_GUI.is_open(player) then
-      -- PREFIX .. "add_tag_table"
-      local _txt = player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["text-name"].text
-      return wutils.limit_text(_txt, 256)
-    end
+  if not player then return "" end
+
+  if add_tag_GUI.is_open(player) then
+    local _txt = player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["text-name"].text
+    return wutils.limit_text(_txt, 256)
+  else
+    return ""
   end
-  return ""
 end
 
 --[[function add_tag_GUI.get_displaytext(player)
@@ -298,22 +286,23 @@ function add_tag_GUI.get_description(player)
   return ""
 end]]
 
-function add_tag_GUI.get_favorite(player)
-  if player then
-    if add_tag_GUI.is_open(player) and
-        player.mod_settings[PREFIX .. "favorites-on"].value and
-        cache.get_available_fave_slots(player) < 10 then
-      return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["checkbox-favorite"].state
-    end
+--- TODO rename this to favorite state
+function add_tag_GUI.get_favorite_state(player)
+  if not player then return false end
+
+  if add_tag_GUI.is_open(player) and
+      player.mod_settings[PREFIX .. "favorites-on"].value and
+      cache.get_available_fave_slots(player) < 10 then
+    return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["checkbox-favorite"].state
   end
   return false
 end
 
 function add_tag_GUI.get_icon(player)
-  if player then
-    if add_tag_GUI.is_open(player) then
-      return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["elem-icon"].elem_value
-    end
+  if not player then return nil end
+
+  if add_tag_GUI.is_open(player) then
+    return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["elem-icon"].elem_value
   end
   return nil
 end
@@ -321,7 +310,9 @@ end
 local function on_fields_values_changed(event)
   -- check for button pressed
   local player = game.get_player(event.player_index)
-  if player and add_tag_GUI.is_open(player) then
+  if not player then return end
+
+  if add_tag_GUI.is_open(player) then
     local text = add_tag_GUI.get_text(player)
     local icon = add_tag_GUI.get_icon(player)
     local enabled = icon ~= nil or text ~= ""
@@ -362,55 +353,54 @@ add_tag_GUI.handlers = {
       cancel = {
         on_gui_click = function(event)
           local player = game.get_player(event.player_index)
-          if player then
-            add_tag_GUI.close(player)
-          end
+          if not player then return end
+
+          add_tag_GUI.close(player)
         end
       },
       confirm = {
         on_gui_click = function(event)
           local player = game.get_player(event.player_index)
-          if player then
-            map_tag_utils.save_tag(
-              player,
-              add_tag_GUI.get_position(),
-              add_tag_GUI.get_text(player),
-              add_tag_GUI.get_icon(player),
-              "", --add_tag_GUI.get_displaytext(player),
-              "", --add_tag_GUI.get_description(player),
-              add_tag_GUI.get_favorite(player)
-            )
-            add_tag_GUI.close(player)
-            control.update_uis(player) -- this is just fav_bar update
-          end
+          if not player then return end
+
+          map_tag_utils.save_tag(
+            player,
+            add_tag_GUI.get_position(),
+            add_tag_GUI.get_text(player),
+            add_tag_GUI.get_icon(player),
+            "", --add_tag_GUI.get_displaytext(player),
+            "", --add_tag_GUI.get_description(player),
+            add_tag_GUI.get_favorite_state(player)
+          )
+          add_tag_GUI.close(player)
+          control.update_uis(player) -- this is just fav_bar update
         end
       },
       teleport = {
         on_gui_click = function(event)
           local player = game.get_player(event.player_index)
-          if player then
-            local target_position = add_tag_GUI.get_position()
-            local og_position = player.position
-            local og_surface_index = player.physical_surface_index
+          if not player then return end
 
-            local tele_pos, msg = map_tag_utils.teleport_player_to_closest_position(player, target_position)
+          local target_position = add_tag_GUI.get_position()
+          local og_position = player.position
+          local og_surface_index = player.physical_surface_index
+          local tele_pos, msg = map_tag_utils.teleport_player_to_closest_position(player, target_position)
 
-            if tele_pos then
-              game.print(string.format("%s teleported to x: %d, y: %d", player.name, tele_pos.x, tele_pos.y))
-              add_tag_GUI.close(player)
+          if tele_pos then
+            game.print(string.format("%s teleported to x: %d, y: %d", player.name, tele_pos.x, tele_pos.y))
+            add_tag_GUI.close(player)
 
-              -- provide a hook for others to key into
-              ---@diagnostic disable-next-line: param-type-mismatch
-              script.raise_event(defines.events.script_raised_teleported,
-                {
-                  entity = player.character,
-                  old_surface_index = og_surface_index,
-                  old_position = og_position
-                }
-              )
-            else
-              game.print(msg)
-            end
+            -- provide a hook for others to key into
+            ---@diagnostic disable-next-line: param-type-mismatch
+            script.raise_event(defines.events.script_raised_teleported,
+              {
+                entity = player.character,
+                old_surface_index = og_surface_index,
+                old_position = og_position
+              }
+            )
+          else
+            game.print(msg)
           end
         end
       }

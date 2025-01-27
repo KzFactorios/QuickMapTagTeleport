@@ -26,6 +26,16 @@ script.on_load(function()
   gui.build_lookup_tables()
 end)
 
+script.on_event(defines.events.on_player_joined_game, function(event)
+  log(serpent.block("on_player_joined_game"))
+  if game then
+    local player = game.get_player(event.player_index)
+    if not player then return end
+
+    control.initialize(player)
+  end
+end)
+
 script.on_event(defines.events.on_player_created, function(event)
   log(serpent.block("on_player_created"))
   if game then

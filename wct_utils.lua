@@ -94,7 +94,7 @@ function wutils.find_element_by_position(tbl, key, pos)
             if element[key].x ~= nil and element[key].y ~= nil and pos and
                 (tostring(element[key]["x"]) == pos.x and tostring(element[key]["y"]) == pos.y) or
                 (tostring(element[key].x) == pos.x and tostring(element[key].y) == pos.y) or
-                (tostring(element[key].x) == tostring(pos.x) and tostring(element[key].y) == tostring(pos.y)) or 
+                (tostring(element[key].x) == tostring(pos.x) and tostring(element[key].y) == tostring(pos.y)) or
                 (tonumber(element[key].x) == tonumber(pos.x) and tonumber(element[key].y) == tonumber(pos.y))
             then
                 return element
@@ -251,14 +251,14 @@ function wutils.find_gui_element_by_name(parent, name)
 end
 
 function wutils.print_view_data(player)
-    if player then
-        if player.render_mode == defines.render_mode.chart then
-            player.print(string.format("You are now in chart view! %d", player.render_mode))
-        elseif player.render_mode == defines.render_mode.chart_zoomed_in then
-            player.print(string.format("You are now in zoomed-in chart view! %d", player.render_mode))
-        else
-            player.print(string.format("You are now in normal view! %d", player.render_mode))
-        end
+    if not player then return end
+
+    if player.render_mode == defines.render_mode.chart then
+        player.print(string.format("You are now in chart view! %d", player.render_mode))
+    elseif player.render_mode == defines.render_mode.chart_zoomed_in then
+        player.print(string.format("You are now in zoomed-in chart view! %d", player.render_mode))
+    else
+        player.print(string.format("You are now in normal view! %d", player.render_mode))
     end
 end
 
@@ -355,7 +355,7 @@ end
 
 --function trim12(s)
 function wutils.trim(s)
-    local from = s:match"^%s*()"
+    local from = s:match "^%s*()"
     return from > #s and "" or s:match(".*%S", from)
 end
 

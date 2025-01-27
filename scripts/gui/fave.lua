@@ -20,11 +20,10 @@ function fave.create_fave(pos, surface_id)
 end
 
 function fave.get_qmtt(player, _fave)
-    if player then
-        local tag_pool = cache.get_extended_tags(player)
-        return wutils.find_element_by_key_and_value(tag_pool, "idx", _fave._pos_idx)
-    end
-    return nil
+    if not player then return nil end
+
+    local tag_pool = cache.get_extended_tags(player)
+    return wutils.find_element_by_key_and_value(tag_pool, "idx", _fave._pos_idx)
 end
 
 function fave.get_chart_tag(player, _fave)
@@ -36,6 +35,8 @@ function fave.get_chart_tag(player, _fave)
 end
 
 function fave.format_sprite_path_from_favorite(player, favorite, is_signal)
+    if not player or not favorite then return "" end
+
     local type, name = "", ""
     local ct = fave.get_chart_tag(player, favorite)
 
@@ -55,31 +56,30 @@ function fave.format_sprite_path_from_favorite(player, favorite, is_signal)
 end
 
 function fave.get_display_text(player, _fave)
-    if player then
-        local q = fave.get_qmtt(player, _fave)
-        if q then
-            return q.fave_displaytext or ""
-        end
+    if not player then return "" end
+
+    local q = fave.get_qmtt(player, _fave)
+    if q then
+        return q.fave_displaytext or ""
     end
-    return ""
 end
 
 function fave.get_description(player, _fave)
-    if player then
-        local q = fave.get_qmtt(player, _fave)
-        if q then
-            return q.fave_description or ""
-        end
+    if not player then return "" end
+
+    local q = fave.get_qmtt(player, _fave)
+    if q then
+        return q.fave_description or ""
     end
     return ""
 end
 
 function fave.get_icon(player, _fave)
-    if player then
-        local ct = fave.get_chart_tag(player, _fave)
-        if ct then
-            return ct.icon or ""
-        end
+    if not player then return "" end
+
+    local ct = fave.get_chart_tag(player, _fave)
+    if ct then
+        return ct.icon or ""
     end
     return ""
 end
@@ -108,28 +108,28 @@ end
 function fave.refresh_data(event)
     if game then
         local player = game.get_player(event.player_index)
-        if player then
-            --find fave in collection
-            local existing_f = wutils.find_element_by_key_and_value(
-                storage.qmtt.GUI.fav_bar.players[event.player_index]
-                .fave_places[player.physical_surface_index], "_pos_idx",
-                wutils.format_idx_from_position(event.old_position))
+        if not player then return end
 
-            if existing_f then
-                existing_f._pos_idx = wutils.format_idx_from_position(event.tag.position)
-            end
+        --find fave in collection
+        local existing_f = wutils.find_element_by_key_and_value(
+            storage.qmtt.GUI.fav_bar.players[event.player_index]
+            .fave_places[player.physical_surface_index], "_pos_idx",
+            wutils.format_idx_from_position(event.old_position))
+
+        if existing_f then
+            existing_f._pos_idx = wutils.format_idx_from_position(event.tag.position)
         end
     end
 end
 
 function fave.get_next_open_fave_places_index(player)
-    if player then
-        local fave_places = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.physical_surface_index]
-        for i = 1, #fave_places do
-            local place = fave_places[i]
-            if place == nil or (type(place) == "table" and next(place) == nil) or place._pos_idx == '' then
-                return i
-            end
+    if not player then return -1 end
+
+    local fave_places = storage.qmtt.GUI.fav_bar.players[player.index].fave_places[player.physical_surface_index]
+    for i = 1, #fave_places do
+        local place = fave_places[i]
+        if place == nil or (type(place) == "table" and next(place) == nil) or place._pos_idx == '' then
+            return i
         end
     end
     return -1

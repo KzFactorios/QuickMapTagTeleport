@@ -20,7 +20,6 @@ add_tag_settings.getPlayerSettings = function(player)
     favorites_off = player.mod_settings[PREFIX .. "favorites-on"].value
   end
 
-
   local settings = {
     teleport_radius = t_radius,
     favorites_on = favorites_on,

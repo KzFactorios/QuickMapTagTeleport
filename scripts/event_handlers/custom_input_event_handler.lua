@@ -6,7 +6,7 @@ local map_tag_utils = require("utils/map_tag_utils")
 
 local custom_input_event_handler = {}
 
--- when right click is performed on the map. Our trigger for opening our dialog
+--- Called when right click is performed on the map. Our trigger for opening our dialog
 function custom_input_event_handler.on_add_tag(event)
   local player = game.get_player(event.player_index)
 
@@ -22,11 +22,10 @@ function custom_input_event_handler.on_add_tag(event)
     -- I think the UX demands that if you light up the indicator,
     -- you should be getting what you are expecting. Also we are
     -- dealing with a square indicator and a round selector
-    -- see github versions prior to 1.2 for proper implementation
     if position_can_be_tagged then
       local position_has_colliding_tags =
           map_tag_utils.position_has_colliding_tags(position, 7.1, player)
-          
+
       if position_has_colliding_tags then
         -- we are editing, open a qmtt
         -- use the position of the colliding tag for all further calcs
@@ -41,31 +40,17 @@ end
 
 function custom_input_event_handler.on_teleport(event)
   --[[
-  This would be a great place to restore existing view, but 
+  This would be a great place to restore existing view, but
   need to research more about preserving/copying previous
-  character state. 
-  "creating and replacing the player's character entity may 
-  have some side effects, such as resetting the player's 
-  equipment, inventory, or other character-related properties. 
+  character state.
+  "creating and replacing the player's character entity may
+  have some side effects, such as resetting the player's
+  equipment, inventory, or other character-related properties.
   Make sure to handle these cases appropriately in your mod."
+
+  ie: you need to rebuild characters entire inventory.
+  Lot's of room for error
   ]]
-
-
-  --[[if event and event.entity and event.entity.player then
-    local player = event.entity.player
-    if player then
-      --[[local chr = player.character
-      player.set_controller(
-        type = 
-      )
-      player.associate_character(chr)]]
-      --[[player.surface.play_sound({m
-      path = "wct-qmtt-construction-robot",
-      position = player.position,
-      volume = 1.0
-    })
-    end
-  end]]
 end
 
 function custom_input_event_handler.on_close_with_toggle_map(event)
@@ -76,31 +61,23 @@ function custom_input_event_handler.on_close_with_toggle_map(event)
 end
 
 function custom_input_event_handler.on_fave_order_updated(event)
-  if game then
-    local player = game.get_player(event.player_index)
-    if player then
-      fav_bar_GUI.update_ui(player)
-      edit_fave_GUI.update_ui(player.index)
-    end
-  end
+  if not game then return end
+
+  local player = game.get_player(event.player_index)
+  if not player then return end
+
+  fav_bar_GUI.update_ui(player)
+  edit_fave_GUI.update_ui(player.index)
 end
 
 function custom_input_event_handler.on_selected_fave_changed(event)
-  if game then
-    local player = game.get_player(event.player_index)
-    if player then
-      edit_fave_GUI.on_selected_fave_changed(event)
-      edit_fave_GUI.update_ui(event.player_index)
-    end
-  end
-end
+  if not game then return end
 
---[[custom_input_event_handler.on_on_maptag_editor_open = function(event)
   local player = game.get_player(event.player_index)
+  if not player then return end
 
-  --[[if ((player and player.render_mode ~= defines.render_mode.game) and (add_tag_GUI.is_open(player))) then
-    add_tag_GUI.close(player)
-  end
-end]]
+  edit_fave_GUI.on_selected_fave_changed(event)
+  edit_fave_GUI.update_ui(event.player_index)
+end
 
 return custom_input_event_handler

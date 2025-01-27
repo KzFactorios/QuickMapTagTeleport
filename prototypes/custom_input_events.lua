@@ -2,11 +2,7 @@ local constants = require("settings/constants")
 local PREFIX = constants.PREFIX
 
 data:extend {
-  --[[{
-    name = constants.events.OPEN_STOCK_GUI,
-    type = "custom-input",
-    key_sequence = "mouse-button-1"
-  },]]
+
   {
     name = constants.events.ADD_TAG_INPUT,
     type = "custom-input",
@@ -79,22 +75,3 @@ data:extend {
     consuming = "game-only"
   },
 }
-
-
---[[
-Need to create a more robust system for handling ESC key
-{
-  type = "custom-input",
-  name = "gui-handle-escape-key",
-  key_sequence = "ESCAPE",
-  consuming = "none",
-},]]
-
---[[script.on_event("gui-handle-escape-key", function(event)
-  ---@diagnostic disable-next-line: undefined-field
-  local player = game.get_player(event.player_index)
-  if not player then return end
-
-  edit_fave_GUI.close(player)
-  add_tag_GUI.close(player)
-end)]]
