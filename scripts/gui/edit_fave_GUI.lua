@@ -162,34 +162,32 @@ local function edit_fave_template(player, _fave)
 end
 
 function edit_fave_GUI.update_ui(player_index)
-    if game then
-        local player = game.get_player(player_index)
-        if not player then return end
+    local player = game.get_player(player_index)
+    if not player then return end
 
-        local fave_pos = cache.get_player_selected_fave_pos_idx(player)
-        if not storage.qmtt.GUI.edit_fave.players[player.index] then
-            storage.qmtt.GUI.edit_fave.players[player.index] = {
-                selected_fave = fave_pos,
-            }
-        end
-
-        -- force redraw of the gui
-        edit_fave_GUI.close(player)
-        if fave_pos == nil or fave_pos == '' then
-            return
-        end
-
-        -- then build it
-        local screen = player.gui.screen
-        local sel_fave = cache.get_player_favorite_by_pos_idx(player, fave_pos)
-        local elements =
-            gui.build(screen, { edit_fave_template(player, sel_fave) })
-
-        elements.root_frame.force_auto_center()
-
-        -- Allow the GUI to intercept ESC key presses
-        --elements.root_frame.ignored_by_interaction = false
+    local fave_pos = cache.get_player_selected_fave_pos_idx(player)
+    if not storage.qmtt.GUI.edit_fave.players[player.index] then
+        storage.qmtt.GUI.edit_fave.players[player.index] = {
+            selected_fave = fave_pos,
+        }
     end
+
+    -- force redraw of the gui
+    edit_fave_GUI.close(player)
+    if fave_pos == nil or fave_pos == '' then
+        return
+    end
+
+    -- then build it
+    local screen = player.gui.screen
+    local sel_fave = cache.get_player_favorite_by_pos_idx(player, fave_pos)
+    local elements =
+        gui.build(screen, { edit_fave_template(player, sel_fave) })
+
+    elements.root_frame.force_auto_center()
+
+    -- TODO Allow the GUI to intercept ESC key presses / Close on E
+    --elements.root_frame.ignored_by_interaction = false
 end
 
 function edit_fave_GUI.on_player_removed(player_index)
@@ -200,9 +198,9 @@ function edit_fave_GUI.on_player_removed(player_index)
 end
 
 function edit_fave_GUI.is_open(player)
-    if player then
-        return mod_gui.get_button_flow(player).gui.screen["edit-fave-gui"] ~= nil
-    end
+    if not player then return end
+
+    return mod_gui.get_button_flow(player).gui.screen["edit-fave-gui"] ~= nil
 end
 
 function edit_fave_GUI.open(player)
@@ -307,16 +305,11 @@ edit_fave_GUI.handlers = {
             },
             left = {
                 on_gui_click = function(event)
-                    -- if next space is empty
-                    -- find next next open or non-locked space
-                    -- if next space is occupied
-                    --edit_fave_GUI.move(event)
                     edit_fave_GUI.swap(event)
                 end
             },
             right = {
                 on_gui_click = function(event)
-                    --edit_fave_GUI.move(event)
                     edit_fave_GUI.swap(event)
                 end
             },
@@ -326,6 +319,7 @@ edit_fave_GUI.handlers = {
     }
 }
 
+--- Another option for moving faves
 function edit_fave_GUI.move(event)
     local player = game.get_player(event.player_index)
     if not player then return end

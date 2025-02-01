@@ -7,6 +7,12 @@ commands.add_command("qmtt_dump_storage",
         log(serpent.block(storage.qmtt, logFormat))
     end)
 
+commands.add_command("qmtt_clear_storage",
+    "Clears the qmtt database. This will delete all of your data (not your tags, but it will delete amy favorite info). Usage: /qmtt_clear_storage",
+    function()
+        storage.qmtt = nil
+    end)
+
 --- Provides a method to delete a mismatched or non-responding favorite.
 commands.add_command("qmtt_delete_by_fave_index",
     "Provides a method to delete a mismatched or non-responding favorite. Usage: /qmtt_delete_by_fave_index <fave_bar_index>",

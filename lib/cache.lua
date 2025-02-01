@@ -1,7 +1,10 @@
-local table = require("__flib__.table")
-local wutils = require("wct_utils")
+local table     = require("__flib__.table")
+local wutils    = require("wct_utils")
 
-cache = {}
+cache           = {}
+
+--- Flag to enable verbose logging for troubleshooting
+cache.__DEBUG   = false
 
 function cache.reset()
     storage.qmtt = nil
@@ -46,25 +49,44 @@ function cache.init_player(player)
     end
 
     if not player then
-        log("no player in init player")
+        log("no player in init_player")
         return
     end
 
     local player_index = player.index
+    local physical_surface_index = player.physical_surface_index
+    local player_name = player.name
+
+    if not player_index then
+        log("no player_index in init_player")
+        return
+    end
+
+    if not player_name then
+        log("PI: " .. tostring(player_index) .. " - no player_name in init_player")
+        return
+    end
+
+    if physical_surface_index == nil then
+        log("PI: " .. tostring(player_index) .. " - no physical_surface_index in init_player")
+        return
+    end
 
     if not storage.qmtt.player_data[player_index] then
         storage.qmtt.player_data[player_index] = {}
         storage.qmtt.player_data[player_index].render_mode = player.render_mode
         storage.qmtt.player_data[player_index].show_fave_bar_buttons = true
+
+        storage.qmtt.player_data[player_index].player_name = player.name or "unknown"
     end
-    if not storage.qmtt.surfaces[player.physical_surface_index] then
-        storage.qmtt.surfaces[player.physical_surface_index] = {}
+    if not storage.qmtt.surfaces[physical_surface_index] then
+        storage.qmtt.surfaces[physical_surface_index] = {}
     end
-    if not storage.qmtt.surfaces[player.physical_surface_index].chart_tags then
-        storage.qmtt.surfaces[player.physical_surface_index].chart_tags = {}
+    if not storage.qmtt.surfaces[physical_surface_index].chart_tags then
+        storage.qmtt.surfaces[physical_surface_index].chart_tags = {}
     end
-    if not storage.qmtt.surfaces[player.physical_surface_index].extended_tags then
-        storage.qmtt.surfaces[player.physical_surface_index].extended_tags = {}
+    if not storage.qmtt.surfaces[physical_surface_index].extended_tags then
+        storage.qmtt.surfaces[physical_surface_index].extended_tags = {}
     end
 
     if not storage.qmtt.GUI.AddTag.players[player_index] then
@@ -77,11 +99,11 @@ function cache.init_player(player)
     if not storage.qmtt.GUI.fav_bar.players[player_index].fave_places then
         storage.qmtt.GUI.fav_bar.players[player_index].fave_places = {}
     end
-    if not storage.qmtt.GUI.fav_bar.players[player_index].fave_places[player.physical_surface_index] then
-        storage.qmtt.GUI.fav_bar.players[player_index].fave_places[player.physical_surface_index] = {}
-        -- TODO make this a setting
+    if not storage.qmtt.GUI.fav_bar.players[player_index].fave_places[physical_surface_index] then
+        storage.qmtt.GUI.fav_bar.players[player_index].fave_places[physical_surface_index] = {}
+        -- TODO make 10 a setting
         for i = 1, 10 do
-            storage.qmtt.GUI.fav_bar.players[player_index].fave_places[player.physical_surface_index][i] = {}
+            storage.qmtt.GUI.fav_bar.players[player_index].fave_places[physical_surface_index][i] = {}
         end
     end
 
@@ -176,6 +198,7 @@ function cache.get_chart_tags_from_cache(player)
 
     local surf = storage.qmtt.surfaces[player.physical_surface_index]
     if surf == nil then
+        -- safety mechanism?
         cache.init_player(player)
         surf = storage.qmtt.surfaces[player.physical_surface_index]
     end
@@ -280,7 +303,6 @@ function cache.get_player_selected_favorite(player)
     return cache.get_player_favorite_by_pos_idx(player, pos)
 end
 
-local __DEBUG = true
 --- Returns the player's favorites
 --- @param player LuaPlayer
 function cache.get_player_favorites(player)
@@ -290,7 +312,7 @@ function cache.get_player_favorites(player)
         cache.init_player(player)
     end
 
-    if __DEBUG then
+    if cache.__DEBUG then
         local logFormat = { comment = false, numformat = '%1.8g' }
         log(serpent.block(storage.qmtt, logFormat))
         log("surface index: " .. tostring(player.physical_surface_index))

@@ -1,3 +1,4 @@
+local edit_fave_GUI = require("scripts/gui/edit_fave_GUI")
 local map_tag_utils = require("utils/map_tag_utils")
 local constants     = require("settings/constants")
 local fave          = require("scripts/gui/fave")
@@ -8,16 +9,14 @@ local mod_gui       = require("mod-gui")
 local PREFIX        = constants.PREFIX
 local next          = next
 
-fav_bar_GUI         = {
-    on_click = {}
-}
+fav_bar_GUI         = {}
 
 function fav_bar_GUI.update_ui(player)
     if not player then return end
 
     fav_bar_GUI.close(player)
     -- Don't allow the interface on a space platform
-    if map_tag_utils.is_on_space_platform(player) then return end
+    if map_tag_utils.is_on_space_platform(player) or player.character == nil then return end
 
     gui.build(mod_gui.get_button_flow(player), { fav_bar_GUI.add_fav_bar_template(player) })
     -- sync_buttons_to_faves(player)
@@ -40,6 +39,7 @@ end
 
 function fav_bar_GUI.buttons_show(player)
     if not player then return end
+    if not player.character then return end
 
     storage.qmtt.player_data[player.index].show_fave_bar_buttons = true
     mod_gui.get_button_flow(player).fav_bar_GUI.fav_bar_widget["fav_bar_row"].visible =
@@ -183,6 +183,7 @@ fav_bar_GUI.handlers = {
                 on_gui_click = function(event)
                     local player = game.get_player(event.player_index)
                     if not player then return end
+                    if not player.character then return end
                     if not event.element then return end
 
                     local idx_num = event.element.number
@@ -194,7 +195,7 @@ fav_bar_GUI.handlers = {
 
                     if event.button == 2 then
                         -- don't allow teleports when the editor is open
-                        if control.is_edit_fave_open(player) then return end
+                        if edit_fave_GUI.is_open(player) then return end
 
                         -- do a teleport
                         -- game.print("you LEFT clicked a fave button")
@@ -253,6 +254,7 @@ fav_bar_GUI.handlers = {
                         if game then
                             local player = game.get_player(event.player_index)
                             if not player then return end
+                            if not player.character then return end
 
                             if fav_bar_GUI.buttons_on(player) then
                                 fav_bar_GUI.buttons_hide(player)

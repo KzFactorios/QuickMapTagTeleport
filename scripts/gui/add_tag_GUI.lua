@@ -168,15 +168,7 @@ function add_tag_GUI.on_player_removed(player_index)
   if not player then return end
 
   add_tag_GUI.close(player)
-  storage.qmtt.GUI.AddTag.players[player_index] = nil
 end
-
--- Handle confirmation (Enter key)
-script.on_event(defines.events.on_gui_confirmed, function(event)
-  if event.element.name == "add_tag_GUI" then
-    event.element.parent.destroy()
-  end
-end)
 
 function add_tag_GUI.is_open(player)
   if not player then return end
@@ -195,7 +187,7 @@ function add_tag_GUI.open(player, position_to_open_from)
 
   control.close_guis(player)
   -- Don't allow the interface on a space platform
-  if map_tag_utils.is_on_space_platform(player) then return end
+  if map_tag_utils.is_on_space_platform(player) or player.character == nil then return end
 
   add_tag_GUI.gui_position = position_to_open_from
 
@@ -286,7 +278,6 @@ function add_tag_GUI.get_description(player)
   return ""
 end]]
 
---- TODO rename this to favorite state
 function add_tag_GUI.get_favorite_state(player)
   if not player then return false end
 

@@ -12,22 +12,23 @@ local gui                        = require("lib/gui")
 local PREFIX                     = constants.PREFIX
 
 script.on_init(function()
-  log(serpent.block("on_init"))
+  if cache.__DEBUG then log(serpent.block("on_init")) end
   gui.init()
   gui.build_lookup_tables()
 
+  cache.init()
   for _, player in pairs(game.players) do
     cache.init_player(player)
+    control.initialize(player)
   end
 end)
 
 script.on_load(function()
-  log(serpent.block("on_load"))
   gui.build_lookup_tables()
 end)
 
 script.on_event(defines.events.on_player_joined_game, function(event)
-  log(serpent.block("on_player_joined_game"))
+  if cache.__DEBUG then log(serpent.block("on_player_joined_game")) end
   if game then
     local player = game.get_player(event.player_index)
     if not player then return end
@@ -37,7 +38,7 @@ script.on_event(defines.events.on_player_joined_game, function(event)
 end)
 
 script.on_event(defines.events.on_player_created, function(event)
-  log(serpent.block("on_player_created"))
+  if cache.__DEBUG then log(serpent.block("on_player_created")) end
   if game then
     local player = game.get_player(event.player_index)
     if not player then return end
@@ -53,27 +54,26 @@ script.on_configuration_changed(function(event)
     -- this condition indicates the mod was removed
     if changes.old_version and not changes.new_version then
       -- cleanup gui for all players
-      if game then
-        for _, player in pairs(game.players) do
-          add_tag_GUI.on_player_removed(player.index)
-          edit_fave_GUI.on_player_removed(player.index)
-          fav_bar_GUI.on_player_removed(player.index)
-        end
+      for _, player in pairs(game.players) do
+        add_tag_GUI.on_player_removed(player.index)
+        edit_fave_GUI.on_player_removed(player.index)
+        fav_bar_GUI.on_player_removed(player.index)
       end
       -- Mod is being removed, clean up data
       storage.qmtt = nil
     else
-      if game then
-        for _, player in pairs(game.players) do
-          --cache.init_player(player)
-          control.initialize(player)
-        end
+      for _, player in pairs(game.players) do
+        control.initialize(player)
       end
     end
   end
 end)
 
---- Triggered when a player leaves a multiplayer session
+--- Called after a player leaves the game. This is not called when
+--- closing a save file in singleplayer, as the player doesn't actually
+--- leave the game, and the save is just on pause until they rejoin.
+--- In MP they have just left the session
+--- https://lua-api.factorio.com/latest/events.html#on_player_left_game
 script.on_event(defines.events.on_player_left_game, function(event)
   control.player_leaves_game(event.player_index)
 end)
@@ -81,6 +81,7 @@ end)
 --- Triggered when a player is removed from the game
 script.on_event(defines.events.on_player_removed, function(event)
   control.player_leaves_game(event.player_index)
+  cache.remove_player_data(event.player_index)
 end)
 
 script.on_event(defines.events.script_raised_teleported,
@@ -91,6 +92,13 @@ script.on_event(constants.events.CLOSE_WITH_TOGGLE_MAP,
 
 script.on_event(constants.events.ADD_TAG_INPUT,
   custom_input_event_handler.on_add_tag)
+
+script.on_event(defines.events.on_player_toggled_map_editor, function(event)
+  if game then
+    local player = game.get_player(event.player_index)
+    if not player then return end
+  end
+end)
 
 script.on_event(defines.events.on_player_controller_changed, function(event)
   if game then
@@ -119,7 +127,14 @@ local RESPONSIVE_TICKS = 30 * 1
 -- local TICKS_PER_FIVE_MINUTES = 60 * 60 * 5 -- 18,000 ticks
 
 script.on_nth_tick(RESPONSIVE_TICKS, function(event)
+  if not game then return end
 
+  for _, player in pairs(game.players) do
+    if not player.character then
+      add_tag_GUI.close(player)
+      edit_fave_GUI.close(player)
+    end
+  end
 end)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
@@ -130,7 +145,7 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
   local setting_type = event.setting_type
 
   if setting_type == "runtime-per-user" and setting_name == PREFIX .. "favorites-on" then
-    control.check_favorites_on_off_change(player)
+    control.check_favorites_on_off_change()
   end
 end)
 
@@ -193,11 +208,14 @@ function control.initialize(player)
 
   cache.init_player(player)
 
-  control.check_favorites_on_off_change(player)
+  control.check_favorites_on_off_change()
+
+  if cache.__DEBUG then
+    log(serpent.block("player_index: " .. player.index))
+    log(serpent.block(player.name))
+  end
 
   -- Helps to place the gui at the end of the guis
-  log(serpent.block("player_index: " .. player.index))
-  log(serpent.block(player.name))
   fav_bar_GUI.update_ui(player)
 end
 
@@ -205,60 +223,59 @@ function control.player_leaves_game(player_index)
   add_tag_GUI.on_player_removed(player_index)
   fav_bar_GUI.on_player_removed(player_index)
   edit_fave_GUI.on_player_removed(player_index)
-  cache.remove_player_data(player_index)
 end
 
---- If the favorites are on AND the player's fave bar exists AND there are NO existing favorites
---- THEN build/init the proper storage structure for player favorites
---- If the favorites are off THEN remove the player's favorites structure
-function control.check_favorites_on_off_change(player)
-  if player.mod_settings[PREFIX .. "favorites-on"].value and
-      storage.qmtt.GUI.fav_bar.players[player.index] ~= nil and
-      -- cache.get_player_favorites(player) -- don't use this as it will create a new empty faves collection
-      (storage.qmtt.GUI.fav_bar.players[player.index].fave_places == nil or
-        #storage.qmtt.GUI.fav_bar.players[player.index].fave_places == 0) -- count of surface indices
-  then
-    cache.favorite_the_player_experience(player)
-  elseif not player.mod_settings[PREFIX .. "favorites-on"].value then
-    cache.unfavorite_the_player_experience(player)
+--- Decide how the favorites_on setting affects the gui display
+function control.check_favorites_on_off_change()
+  if not game then return end
+
+  for _, player in pairs(game.players) do
+    -- If the favorites are on AND the player's fave bar exists AND there are NO existing favorites
+    -- THEN build/init the proper storage structure for player favorites
+    -- If the favorites are off THEN remove the player's favorites structure
+    if player.mod_settings[PREFIX .. "favorites-on"].value and
+        storage.qmtt.GUI.fav_bar.players[player.index] ~= nil and
+        -- cache.get_player_favorites(player) -- don't use this as it will create a new empty faves collection
+        (storage.qmtt.GUI.fav_bar.players[player.index].fave_places == nil or
+          #storage.qmtt.GUI.fav_bar.players[player.index].fave_places == 0) -- count of surface indices
+    then
+      cache.favorite_the_player_experience(player)
+    elseif not player.mod_settings[PREFIX .. "favorites-on"].value then
+      cache.unfavorite_the_player_experience(player)
+    end
   end
 end
 
 --- updates the favorites bar
 function control.update_uis(player)
-  if player then
-    fav_bar_GUI.update_ui(player)
-  end
+  if not player then return end
+
+  fav_bar_GUI.update_ui(player)
 end
 
 --- obviously we cannot handle ALL guis, just handle what we know
 function control.close_guis(player)
-  if player then
-    add_tag_GUI.close(player)
-    edit_fave_GUI.close(player)
-  end
+  if not player then return end
+
+  add_tag_GUI.close(player)
+  edit_fave_GUI.close(player)
 
   -- TODO always close the stock editor
   -- not accessible, stock editor is handled by c layer
 end
 
-function control.is_edit_fave_open(player)
-  return edit_fave_GUI.is_open(player)
-end
-
 --- Given a position {x,y}, remove from player's inventory
 function control.remove_tag_at_position(player, position)
-  if player then
-    local pos_idx = wutils.format_idx_from_position(position)
+  if not player then return end
 
-    qmtt.remove_chart_tag_at_position(player, position)
-    qmtt.remove_ext_tag_at_position(player, position)
-    qmtt.clear_matching_selected_fave(pos_idx)
-    qmtt.clear_matching_fave_places(player, pos_idx)
+  local pos_idx = wutils.format_idx_from_position(position)
 
-    qmtt.reset_chart_tags(player.physical_surface_index)
-    control.update_uis(player)
-  end
+  qmtt.remove_chart_tag_at_position(player, position)
+  qmtt.remove_ext_tag_at_position(player, position)
+  qmtt.clear_matching_selected_fave(pos_idx)
+  qmtt.clear_matching_fave_places(player, pos_idx)
+  qmtt.reset_chart_tags(player.physical_surface_index)
+  control.update_uis(player)
 end
 
 return control

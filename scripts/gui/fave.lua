@@ -96,32 +96,6 @@ function fave.convert_qmtt_to_fave(player_index, _qmtt)
     return nil
 end
 
-function fave.convert_old_fave_to_new(old_fave)
-    local _fave = {
-        _pos_idx = old_fave._pos_idx,
-        _surface_id = old_fave._qmtt.surface_id,
-    }
-    return _fave
-end
-
---@params old_position, tag, player_index
-function fave.refresh_data(event)
-    if game then
-        local player = game.get_player(event.player_index)
-        if not player then return end
-
-        --find fave in collection
-        local existing_f = wutils.find_element_by_key_and_value(
-            storage.qmtt.GUI.fav_bar.players[event.player_index]
-            .fave_places[player.physical_surface_index], "_pos_idx",
-            wutils.format_idx_from_position(event.old_position))
-
-        if existing_f then
-            existing_f._pos_idx = wutils.format_idx_from_position(event.tag.position)
-        end
-    end
-end
-
 function fave.get_next_open_fave_places_index(player)
     if not player then return -1 end
 

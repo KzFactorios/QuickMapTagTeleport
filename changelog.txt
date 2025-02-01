@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.6
+Date: 2025-01-30
+
+  Notes:
+    - Easy fix to handle playtester upgrades. 0.2.6 was never released into the wild
+    - Play nicer with EditorExtensions - removed interaction when player.character is nil
+    - Order controls settings
+    - Fix bug where trying to remove invalid tags would crash
+---------------------------------------------------------------------------------------------------
 Version: 0.2.5
 Date: 2025-01-27
 
@@ -7,7 +16,7 @@ Date: 2025-01-27
     - Refactor game.players[idx] -> game.get_player(idx), player.surface_index -> player.physical_surface_index
     - Update dependencies
     - Code cleanup
-    - Big thanks to PennyJim and justarandomgeek for their help and guidance
+    - Several multiplayer issues. Playtesting
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.4
 Date: 2025-01-21

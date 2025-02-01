@@ -190,6 +190,7 @@ end
 -- Player's are not allowed to teleport on space platforms!
 function map_tag_utils.teleport_player_to_closest_position(player, target_position)
   if not player then return nil, "" end
+  if not player.character then return nil, "" end
 
   if map_tag_utils.is_on_space_platform(player) then
     return nil,

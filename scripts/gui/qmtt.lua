@@ -149,11 +149,16 @@ function qmtt.remove_chart_tag_at_position(player, pos)
     if not player then return end
 
     local _chart_tags = storage.qmtt.surfaces[player.physical_surface_index].chart_tags
+    local change = false
     if _chart_tags and #_chart_tags > 0 then
-        local idx = wutils.find_element_idx_by_position(_chart_tags, "position", pos)
+        local idx = wutils.find_tag_element_idx_by_position(_chart_tags, "position", pos, true)
         if idx and idx > 0 then
             _chart_tags[idx] = nil
+            change = true
         end
+    end
+    if change then
+        cache.reset_surface_chart_tags(player)
     end
 end
 
@@ -162,7 +167,7 @@ function qmtt.remove_ext_tag_at_position(player, pos)
 
     local _ext_tags = storage.qmtt.surfaces[player.physical_surface_index].extended_tags
     if _ext_tags and #_ext_tags > 0 then
-        local idx = wutils.find_element_idx_by_position(_ext_tags, "position", pos)
+        local idx = wutils.find_tag_element_idx_by_position(_ext_tags, "position", pos, false)
         if idx and idx > 0 then
             _ext_tags[idx] = nil
         end
@@ -173,10 +178,8 @@ function qmtt.clear_matching_selected_fave(pos_idx)
     for _, v in pairs(storage.qmtt.GUI.edit_fave.players) do
         if v.selected_fave and v.selected_fave == pos_idx then
             v.selected_fave = ""
-            return true
         end
     end
-    return false
 end
 
 function qmtt.clear_matching_fave_places(player, pos_idx)

@@ -52,7 +52,9 @@ Simply **right-click** and create your tag. That's it!
 - I will continue to work on these issues, but I figured I'd give you a way to fix them yourselves.
 
 
-#### Based on the hard work of [Quick Map Tag](https://mods.factorio.com/mod/QuickMapTag) by **[templar4522](https://mods.factorio.com/user/templar4522)** and [Tag To Teleport](https://mods.factorio.com/mod/TagToTeleport) by **[darkfrei](https://mods.factorio.com/user/darkfrei)** --
+#### Based on the hard work of [Quick Map Tag](https://mods.factorio.com/mod/QuickMapTag) by **[templar4522](https://mods.factorio.com/user/templar4522)** and [Tag To Teleport](https://mods.factorio.com/mod/TagToTeleport) by **[darkfrei](https://mods.factorio.com/user/darkfrei)** 
+
+__Special thanks to PennyJim, justanothergeek and the Factorio Discord community for their help and guidance as well as CarpDM for multiplayer playtesting.__
 
 -----  
-Check the changelog for further notes.
+See the changelog for further notes.
