@@ -221,14 +221,16 @@ function map_tag_utils.teleport_player_to_closest_position(player, target_positi
   -- high precision, slowest, use 8
   )
 
-  local valid = player.surface.can_place_entity({ name = "character", position = closest_position })
+  if closest_position then
+    local valid = player.surface.can_place_entity({ name = "character", position = closest_position })
 
-  -- If a position is found, teleport the player there
-  if closest_position and valid then
-    if player.teleport(closest_position, player.surface) then
-      return_pos = closest_position
-      return_msg = ""
-      -- note that caller is currently handling raising of teleport event
+    -- If a position is found, teleport the player there
+    if valid then
+      if player.teleport(closest_position, player.surface) then
+        return_pos = closest_position
+        return_msg = ""
+        -- note that caller is currently handling raising of teleport event
+      end
     end
   end
 
