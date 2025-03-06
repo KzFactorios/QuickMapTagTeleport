@@ -10,6 +10,7 @@ local cache                      = require("lib/cache")
 local commands                   = require("commands")
 local gui                        = require("lib/gui")
 local PREFIX                     = constants.PREFIX
+local add_tag_settings           = require("settings/add_tag_settings")
 
 script.on_init(function()
   if cache.__DEBUG then log(serpent.block("on_init")) end
@@ -233,14 +234,16 @@ function control.check_favorites_on_off_change()
     -- If the favorites are on AND the player's fave bar exists AND there are NO existing favorites
     -- THEN build/init the proper storage structure for player favorites
     -- If the favorites are off THEN remove the player's favorites structure
-    if player.mod_settings[PREFIX .. "favorites-on"].value and
+    local settings = add_tag_settings.getPlayerSettings(player)
+
+    if settings.favorites_on and
         storage.qmtt.GUI.fav_bar.players[player.index] ~= nil and
         -- cache.get_player_favorites(player) -- don't use this as it will create a new empty faves collection
         (storage.qmtt.GUI.fav_bar.players[player.index].fave_places == nil or
           #storage.qmtt.GUI.fav_bar.players[player.index].fave_places == 0) -- count of surface indices
     then
       cache.favorite_the_player_experience(player)
-    elseif not player.mod_settings[PREFIX .. "favorites-on"].value then
+    elseif not settings.favorites_on then
       cache.unfavorite_the_player_experience(player)
     end
   end

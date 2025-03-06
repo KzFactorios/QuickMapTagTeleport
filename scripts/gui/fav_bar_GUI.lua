@@ -7,6 +7,7 @@ local wutils        = require("wct_utils")
 local gui           = require("lib/gui")
 local mod_gui       = require("mod-gui")
 local PREFIX        = constants.PREFIX
+local add_tag_settings = require("settings/add_tag_settings")
 local next          = next
 
 fav_bar_GUI         = {}
@@ -17,6 +18,9 @@ function fav_bar_GUI.update_ui(player)
     fav_bar_GUI.close(player)
     -- Don't allow the interface on a space platform
     if map_tag_utils.is_on_space_platform(player) or player.character == nil then return end
+
+    local settings = add_tag_settings.getPlayerSettings(player)
+    if not settings.favorites_on then return end
 
     gui.build(mod_gui.get_button_flow(player), { fav_bar_GUI.add_fav_bar_template(player) })
     -- sync_buttons_to_faves(player)
@@ -58,8 +62,15 @@ function fav_bar_GUI.close(player)
     if not player then return end
 
     if fav_bar_GUI.is_open(player) then
-        mod_gui.get_button_flow(player)["fav_bar_GUI"].destroy()
+        local flow = mod_gui.get_button_flow(player)
+        flow["fav_bar_GUI"].destroy()
     end
+
+    -- check gui for zero elements?
+    --if player.gui and player.gui.top and player.gui.top.children["mod_gui_top_frame"] then
+    --    local top_frame = 
+    --end
+
 end
 
 --- returns boolean indicating if the button bar is showing or not
@@ -214,23 +225,28 @@ fav_bar_GUI.handlers = {
                             if position == nil then return end
 
                             local tele_pos, msg = map_tag_utils.teleport_player_to_closest_position(player, position)
+                            
                             if tele_pos then
-                                game.print(string.format("%s teleported to x: %d, y: %d", player.name, tele_pos.x,
-                                    tele_pos.y))
+                                local settings = add_tag_settings.getPlayerSettings(player)
 
+                                if settings.destination_msg_on then
+                                  game.print(string.format("%s teleported to x: %d, y: %d", player.name, tele_pos.x, tele_pos.y))
+                                end
+                                --add_tag_GUI.close(player)
+                    
                                 -- provide a hook for others to key into
                                 ---@diagnostic disable-next-line: param-type-mismatch
                                 script.raise_event(defines.events.script_raised_teleported,
-                                    {
-                                        entity = player.character,
-                                        old_surface_index = og_surface_index,
-                                        old_position = og_position,
-                                        teleported_to = tele_pos
-                                    }
+                                  {
+                                    player_index = player.index,
+                                    entity = player.character,
+                                    old_surface_index = og_surface_index,
+                                    old_position = og_position
+                                  }
                                 )
-                            else
+                              else
                                 game.print(msg)
-                            end
+                              end
                         end
                     elseif event.button == 4 then
                         -- open an editor

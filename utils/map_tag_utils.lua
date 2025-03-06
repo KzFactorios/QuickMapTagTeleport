@@ -203,7 +203,9 @@ function map_tag_utils.teleport_player_to_closest_position(player, target_positi
   local return_msg =
   "No valid teleport position found within the teleport radius. Please select another location or you could try increasing the search radius in settings. The hive mind discourages this practice as it will reduce the accuracy of your teleport landing points."
 
-  local teleport_radius = player.mod_settings[PREFIX .. "teleport-radius"].value
+  local settings = add_tag_settings.getPlayerSettings(player)
+  local teleport_radius = settings.teleport_radius
+  
   if teleport_radius < add_tag_settings.TELEPORT_RADIUS_MIN then
     teleport_radius = add_tag_settings.TELEPORT_RADIUS_MIN
   elseif teleport_radius > add_tag_settings.TELEPORT_RADIUS_MAX then

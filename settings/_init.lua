@@ -8,12 +8,21 @@ data:extend({
     setting_type = "runtime-per-user",
     default_value = add_tag_settings.TELEPORT_RADIUS_DEFAULT,
     minimum_value = add_tag_settings.TELEPORT_RADIUS_MIN,
-    maximum_value = add_tag_settings.TELEPORT_RADIUS_MAX
+    maximum_value = add_tag_settings.TELEPORT_RADIUS_MAX,
+    order = "kg",
   },
   {
     name = PREFIX .. "favorites-on",
     type = "bool-setting",
     setting_type = "runtime-per-user",
     default_value = true,
+    order = "ka",
+  },
+  {
+    name = PREFIX .. "destination-msg-on",
+    type = "bool-setting",
+    setting_type = "runtime-per-user",
+    default_value = true,
+    order = "kd",
   }
 })

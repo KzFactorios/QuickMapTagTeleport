@@ -50,8 +50,15 @@ function custom_input_event_handler.on_teleport(event)
 
   ie: you need to rebuild characters entire inventory.
   Lot's of room for error
-  ]]
-end
+ 
+  if not game or not event.player_index then return end
+
+  local player = game.get_player(event.player_index)
+  if not player then return end
+
+  fav_bar_GUI.update_ui(player)
+]]
+end 
 
 function custom_input_event_handler.on_close_with_toggle_map(event)
   local player = game.get_player(event.player_index)

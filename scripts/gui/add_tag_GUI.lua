@@ -1,12 +1,16 @@
-local map_tag_utils = require("utils/map_tag_utils")
-local constants     = require("settings/constants")
-local wutils        = require("wct_utils")
-local cache         = require("lib/cache")
-local gui           = require("lib/gui")
-local PREFIX        = constants.PREFIX
+local map_tag_utils    = require("utils/map_tag_utils")
+local constants        = require("settings/constants")
+local wutils           = require("wct_utils")
+local cache            = require("lib/cache")
+local gui              = require("lib/gui")
+local PREFIX           = constants.PREFIX
+local add_tag_settings = require("settings/add_tag_settings")
 
 local function add_tag_frame_template(player, formatted_position, text, icon, _qmtt, element_favorite)
+  if not player then return nil end
+  
   local container_elements = {}
+  local settings = add_tag_settings.getPlayerSettings(player)
 
   table.insert(container_elements, { type = "label", style = "label", caption = { "gui-tag-edit.teleport" } })
   table.insert(container_elements, {
@@ -29,7 +33,7 @@ local function add_tag_frame_template(player, formatted_position, text, icon, _q
     handlers = "add_tag.fields.text"
   })
 
-  if player.mod_settings[PREFIX .. "favorites-on"].value and cache.get_available_fave_slots(player) < 10 then
+  if settings.favorites_on and cache.get_available_fave_slots(player) < 10 then
     table.insert(container_elements, { type = "label", caption = "Favorite" })
     table.insert(container_elements, {
       type = "checkbox",
@@ -281,8 +285,10 @@ end]]
 function add_tag_GUI.get_favorite_state(player)
   if not player then return false end
 
+  local settings = add_tag_settings.getPlayerSettings(player)
+
   if add_tag_GUI.is_open(player) and
-      player.mod_settings[PREFIX .. "favorites-on"].value and
+      settings.favorites_on and
       cache.get_available_fave_slots(player) < 10 then
     return player.gui.screen["gui-tag-edit"]["table-container"]["table-proper"]["checkbox-favorite"].state
   end
@@ -376,15 +382,19 @@ add_tag_GUI.handlers = {
           local og_position = player.position
           local og_surface_index = player.physical_surface_index
           local tele_pos, msg = map_tag_utils.teleport_player_to_closest_position(player, target_position)
+          local settings = add_tag_settings.getPlayerSettings(player)
 
           if tele_pos then
-            game.print(string.format("%s teleported to x: %d, y: %d", player.name, tele_pos.x, tele_pos.y))
+            if settings.destination_msg_on then
+              game.print(string.format("%s teleported to x: %d, y: %d", player.name, tele_pos.x, tele_pos.y))
+            end
             add_tag_GUI.close(player)
 
             -- provide a hook for others to key into
             ---@diagnostic disable-next-line: param-type-mismatch
             script.raise_event(defines.events.script_raised_teleported,
               {
+                player_index = player.index,
                 entity = player.character,
                 old_surface_index = og_surface_index,
                 old_position = og_position
