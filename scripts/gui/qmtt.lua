@@ -2,6 +2,7 @@
 local table  = require("__flib__.table")
 local wutils = require("wct_utils")
 local cache  = require("lib/cache")
+--local control = require("control")
 local qmtt   = {}
 
 --[[
@@ -126,7 +127,17 @@ function qmtt.handle_chart_tag_modified(event)
             end
         end
 
+        --[[
+        if not storage.qmtt.surfaces[surface_id].chart_tags then
+            storage.qmtt.surfaces[surface_id].chart_tags = {}
+        end
+        ]]
         -- find any chart tags
+        local c_tags = storage.qmtt.surfaces[surface_id].chart_tags
+        if not c_tags then 
+            storage.qmtt.surfaces[surface_id].chart_tags = {}
+        end
+
         for _, chart_tag in pairs(storage.qmtt.surfaces[surface_id].chart_tags) do
             if wutils.format_idx_from_position(chart_tag.position) == old_pos then
                 chart_tag.position.x = event.tag.position.x

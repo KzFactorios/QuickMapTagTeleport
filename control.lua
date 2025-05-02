@@ -139,6 +139,10 @@ script.on_nth_tick(RESPONSIVE_TICKS, function(event)
 end)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
+  if not event then return end
+  -- .player_index is optional in the API but we need the player index in our logic
+  if not event.player_index then return end
+
   local player = game.get_player(event.player_index)
   if not player then return end
 
